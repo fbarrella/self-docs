@@ -7,6 +7,7 @@ import { DocumentView } from './pages/DocumentView'
 import { DocumentsPage } from './pages/DocumentsPage'
 import { KnowledgeBasePage } from './pages/KnowledgeBasePage'
 import { PlaceholderPage } from './pages/PlaceholderPage'
+import { SearchPage } from './pages/SearchPage'
 import { routes } from './routes'
 
 // The Markdown editor is heavy, so it loads on demand.
@@ -59,10 +60,7 @@ function App() {
             />
           }
         />
-        <Route
-          path={routes.search}
-          element={<PlaceholderPage title="Search" description="Global full-text search." />}
-        />
+        <Route path={routes.search} element={<SearchPage />} />
         <Route
           path={routes.settings}
           element={<PlaceholderPage title="Settings" description="Global application settings." />}

@@ -549,3 +549,26 @@ Verification: `npm run lint` (0 warnings), `npx tsc -b --noEmit`,
              project note, GET /api/documents/tree returning the parent/child
              hierarchy, and fetching the child document for the viewer.
 Next       : T4.6 - Global search experience
+
+--------------------------------------------------------------------------------
+[2026-09-17T23:56:32Z] TASK T4.6 - Global search experience
+--------------------------------------------------------------------------------
+Phase      : 4 - Frontend Features
+Status     : DONE
+Summary    : Implemented the global search page (PRD 3.3): the query lives in
+             the URL so header/dashboard searches just navigate, the input
+             resets to the URL query during render (no setState-in-effect), and
+             results show title, section badge, server-highlighted content
+             snippet (parsed into React nodes, no dangerouslySetInnerHTML),
+             tags, and relative time. Added loading skeletons, an error retry
+             banner, a pre-search prompt, a zero-results state, and pagination.
+Files      : frontend/src/pages/SearchPage.tsx,
+             frontend/src/styles/search.css, frontend/src/index.css,
+             frontend/src/App.tsx
+Verification: `npm run lint` (0 warnings), `npx tsc -b --noEmit`,
+             `npm run format:check`, and `npm run build` succeed. Against the
+             real backend (disposable postgres:16-alpine) verified content and
+             tag matches, a zero-match query, and — with the vault unlocked —
+             that a private-only term returns 0 public results while the public
+             document still matches.
+Next       : T4.7 - Private Archive UI and master-password modal

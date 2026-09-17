@@ -1,0 +1,93 @@
+/** Global search page styles (T4.6). */
+
+.search-page {
+  padding-block: var(--space-7);
+}
+
+.search-page__header {
+  max-width: 42rem;
+  margin-bottom: var(--space-6);
+}
+
+.search-page__title {
+  margin-bottom: var(--space-2);
+  font-size: var(--font-size-xl);
+}
+
+.search-page__form {
+  margin-bottom: var(--space-3);
+}
+
+.search-results {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.search-result {
+  padding: var(--space-5);
+}
+
+.search-result__header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-3);
+  margin-bottom: var(--space-2);
+}
+
+.search-result__title {
+  margin: 0;
+  font-size: var(--font-size-md);
+  font-weight: var(--font-weight-semibold);
+}
+
+.search-result__section {
+  flex-shrink: 0;
+  padding: var(--space-1) var(--space-3);
+  background-color: var(--color-tag-bg);
+  border-radius: var(--radius-pill);
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-medium);
+}
+
+.search-result__snippet {
+  margin: 0 0 var(--space-3);
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-sm);
+  line-height: var(--line-height-normal);
+}
+
+.search-result__snippet mark {
+  padding: 0 0.15em;
+  background-color: var(--color-accent);
+  color: var(--color-accent-text);
+  border-radius: var(--radius-sm);
+}
+
+.search-result__footer {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+
+.search-result__tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.search-result__time {
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-xs);
+}
+
+.search-empty {
+  max-width: 32rem;
+  padding: var(--space-8) 0;
+  color: var(--color-text-secondary);
+}
