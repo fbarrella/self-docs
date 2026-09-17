@@ -41,3 +41,22 @@ Verification: `gofmt -l . && go vet ./... && go build ./...` -> GO_OK;
              `npm run lint` -> clean; `npm run format:check` -> all files
              compliant; `npm run build` -> built in 197ms (tsc + vite).
 Next       : T0.2 - Shared API contract and data model design
+
+--------------------------------------------------------------------------------
+[2026-09-17T19:48:45Z] TASK T0.2 - Shared API contract and data model design
+--------------------------------------------------------------------------------
+Phase      : 0 - Foundation & Contracts
+Status     : DONE
+Summary    : Froze the persistence model and REST contract before
+             implementation. data-model.md defines documents, tags,
+             document_tags, activity_logs and settings with enums, checks,
+             indexes, FTS strategy (simple dictionary, weighted tsvector) and
+             private-isolation invariants. api.md defines all endpoints,
+             payloads, error codes, pagination, auth/session flow and the SPA
+             route map.
+Files      : docs/data-model.md, docs/api.md, README.md
+Verification: Cross-checked against PRD 3.1-3.4 (documents, sections, search,
+             dashboard), PRD 4 (navigation routes) and PRD 5 (private vault,
+             performance); resolved slug-uniqueness and lock/locked naming
+             inconsistencies before freeze.
+Next       : T1.1 - PostgreSQL schema and migrations

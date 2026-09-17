@@ -6,7 +6,9 @@ frontend, a Go/Gin backend, PostgreSQL, optional Redis, and Docker Compose.
 
 The product requirements live in [`PRD.md`](./PRD.md), the UI specification in
 [`DESIGN.md`](./DESIGN.md), and the task breakdown in
-[`DEVELOPMENT_PLAN.md`](./DEVELOPMENT_PLAN.md).
+[`DEVELOPMENT_PLAN.md`](./DEVELOPMENT_PLAN.md). The frozen contracts are
+[`docs/data-model.md`](./docs/data-model.md) and
+[`docs/api.md`](./docs/api.md).
 
 ## Repository layout
 
