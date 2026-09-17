@@ -1,8 +1,32 @@
+import { Suspense, lazy } from 'react'
 import { Navigate, Outlet, Route, Routes } from 'react-router-dom'
 import { AppLayout } from './components/layout'
-import { Gallery } from './pages/Gallery'
+import { Spinner } from './components'
+import { DashboardPage } from './pages/DashboardPage'
+import { DocumentView } from './pages/DocumentView'
+import { DocumentsPage } from './pages/DocumentsPage'
+import { KnowledgeBasePage } from './pages/KnowledgeBasePage'
 import { PlaceholderPage } from './pages/PlaceholderPage'
 import { routes } from './routes'
+
+// The Markdown editor is heavy, so it loads on demand.
+const EditorPage = lazy(() =>
+  import('./pages/EditorPage').then((module) => ({ default: module.EditorPage })),
+)
+const Gallery = lazy(() =>
+  import('./pages/Gallery').then((module) => ({ default: module.Gallery })),
+)
+
+function RouteFallback() {
+  return (
+    <div className="container" style={{ paddingBlock: 'var(--space-8)' }}>
+      <div className="row">
+        <Spinner size="lg" />
+        <span>Loading…</span>
+      </div>
+    </div>
+  )
+}
 
 /** ShellRoute wraps nested routes with the persistent Header/Footer layout. */
 function ShellRoute() {
@@ -21,42 +45,11 @@ function App() {
   return (
     <Routes>
       <Route element={<ShellRoute />}>
-        <Route
-          path={routes.dashboard}
-          element={
-            <PlaceholderPage
-              title="Dashboard"
-              description="Welcome back — dashboard coming in Phase 4."
-            />
-          }
-        />
-        <Route
-          path={routes.documents}
-          element={
-            <PlaceholderPage title="Documents" description="All documents will be listed here." />
-          }
-        />
-        <Route
-          path={routes.workflows}
-          element={
-            <PlaceholderPage
-              title="Workflows & Guides"
-              description="Step-by-step procedures and guides."
-            />
-          }
-        />
-        <Route
-          path={routes.knowledgeBase}
-          element={
-            <PlaceholderPage title="Project Notes" description="Nested project documentation." />
-          }
-        />
-        <Route
-          path={routes.cheatSheets}
-          element={
-            <PlaceholderPage title="Cheat Sheets" description="Quick references and snippets." />
-          }
-        />
+        <Route path={routes.dashboard} element={<DashboardPage />} />
+        <Route path={routes.documents} element={<DocumentsPage />} />
+        <Route path={routes.workflows} element={<DocumentsPage section="workflow" />} />
+        <Route path={routes.knowledgeBase} element={<KnowledgeBasePage />} />
+        <Route path={routes.cheatSheets} element={<DocumentsPage section="cheat_sheet" />} />
         <Route
           path={routes.private}
           element={
@@ -74,15 +67,25 @@ function App() {
           path={routes.settings}
           element={<PlaceholderPage title="Settings" description="Global application settings." />}
         />
-        <Route
-          path={`${routes.documents}/:id`}
-          element={<PlaceholderPage title="Document" description="Document viewer." />}
-        />
+        <Route path={`${routes.documents}/:id`} element={<DocumentView />} />
         <Route
           path={`${routes.editor}/:id?`}
-          element={<PlaceholderPage title="Editor" description="Create or edit a document." />}
+          element={
+            <Suspense fallback={<RouteFallback />}>
+              <EditorPage />
+            </Suspense>
+          }
         />
-        {import.meta.env.DEV && <Route path="/_gallery" element={<Gallery />} />}
+        {import.meta.env.DEV && (
+          <Route
+            path="/_gallery"
+            element={
+              <Suspense fallback={<RouteFallback />}>
+                <Gallery />
+              </Suspense>
+            }
+          />
+        )}
       </Route>
       <Route path="*" element={<Navigate to={routes.dashboard} replace />} />
     </Routes>

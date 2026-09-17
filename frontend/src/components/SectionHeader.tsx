@@ -3,7 +3,7 @@ import type { ReactNode } from 'react'
 export interface SectionHeaderProps {
   title: string
   action?: ReactNode
-  headingLevel?: 'h2' | 'h3' | 'h4'
+  headingLevel?: 'h1' | 'h2' | 'h3' | 'h4'
 }
 
 /** SectionHeader titles a content block with an optional trailing action. */

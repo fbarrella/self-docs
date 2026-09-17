@@ -428,3 +428,124 @@ Verification: `npm run lint`, `npm run format:check`, `npx tsc -b --noEmit`,
              transforms the Header; built bundle contains nav labels ("Knowledge
              Base"), footer copy ("Portal links"), and layout classes.
 Next       : T4.1 - Dashboard page
+
+--------------------------------------------------------------------------------
+[2026-09-17T23:05:32Z] TASK T4.1 - Dashboard page
+--------------------------------------------------------------------------------
+Phase      : 4 - Frontend Features
+Status     : DONE
+Summary    : Built the dashboard (PRD 3.4, DESIGN.md 2.2-2.4): Welcome hero with
+             global SearchBar, four navigation cards in a 4/2/1 responsive grid
+             (sectionMeta), Recently Updated list, Popular Tags pills, and an
+             Activity Feed. Added a useAsync hook (abortable, loading/error/
+             reload) and relativeTime/formatAbsolute helpers. Cards show live
+             counts and a password-required state for the private vault; errors
+             render a retry banner instead of a blank screen.
+Files      : frontend/src/pages/DashboardPage.tsx, frontend/src/hooks/useAsync.ts,
+             frontend/src/utils/time.ts, frontend/src/sectionMeta.ts,
+             frontend/src/styles/dashboard.css, frontend/src/index.css,
+             frontend/src/App.tsx
+Verification: `npm run lint`, `npm run format:check`, `npx tsc -b --noEmit`, and
+             `npm run build` all succeed. Ran the real backend against
+             disposable postgres:16-alpine and confirmed /api/dashboard returns
+             cards/recently_updated/popular_tags/activity and that CORS allows
+             the http://localhost:5173 dev origin for both preflight and GET.
+Next       : T4.2 - Document listing pages
+
+--------------------------------------------------------------------------------
+[2026-09-17T23:10:27Z] TASK T4.2 - Document listing pages
+--------------------------------------------------------------------------------
+Phase      : 4 - Frontend Features
+Status     : DONE
+Summary    : Added a shared DocumentsPage used by /documents, /workflows, and
+             /cheat-sheets. It supports section scoping, popular-tag filter
+             chips plus tag toggle, title filtering, sort (updated/created/
+             title, asc/desc), and pagination, all synced to URL query params
+             for shareable/reload-safe state. Built a DocumentCard component and
+             documents.css; states cover loading skeletons, errors with retry,
+             and an empty state with a create action.
+Files      : frontend/src/pages/DocumentsPage.tsx,
+             frontend/src/components/DocumentCard.tsx,
+             frontend/src/styles/documents.css, frontend/src/index.css,
+             frontend/src/components/{index.ts,SectionHeader.tsx},
+             frontend/src/App.tsx
+Verification: `npm run lint`, `npm run format:check`, `npx tsc -b --noEmit`, and
+             `npm run build` succeed. Against the real backend (disposable
+             postgres:16-alpine) verified section listing, tag filtering,
+             title-only q, and combined section+tag filters return the expected
+             documents.
+Next       : T4.3 - Markdown editor (create/edit)
+
+--------------------------------------------------------------------------------
+[2026-09-17T23:33:37Z] TASK T4.3 - Markdown editor (create/edit)
+--------------------------------------------------------------------------------
+Phase      : 4 - Frontend Features
+Status     : DONE
+Summary    : Implemented the in-app authoring page (PRD 3.1) with
+             @uiw/react-md-editor (live preview, nohighlight variant) plus a
+             title field, section selector, and tag input with add/remove chips.
+             /editor creates and /editor/:id loads-then-edits; the form is
+             keyed by id so state matches fetched data, with save, delete
+             (confirm), and status feedback. The editor route is lazy-loaded
+             (Suspense fallback) to keep the main bundle small; added a New
+             Document entry point on the listing page.
+Files      : frontend/src/pages/EditorPage.tsx, frontend/src/styles/editor.css,
+             frontend/src/index.css, frontend/src/App.tsx,
+             frontend/src/pages/DocumentsPage.tsx, frontend/package.json,
+             frontend/package-lock.json
+Verification: `npm run lint`, `npx tsc -b --noEmit`, `npm run format:check`, and
+             `npm run build` succeed; build now splits EditorPage/Gallery
+             chunks (main JS ~287 kB, editor ~430 kB loaded on demand). Against
+             the real backend (disposable postgres:16-alpine) verified
+             create -> load -> update (title/section/tags) -> delete.
+Next       : T4.4 - Markdown import UI
+
+--------------------------------------------------------------------------------
+[2026-09-17T23:39:00Z] TASK T4.4 - Markdown import UI
+--------------------------------------------------------------------------------
+Phase      : 4 - Frontend Features
+Status     : DONE
+Summary    : Built the ImportDialog (PRD 3.1) wired to
+             POST /api/documents/import: drag-and-drop plus click-to-browse,
+             a removable file list with sizes, target-section select, optional
+             default tags, .md-only guard, and a per-file result summary with
+             created/skipped/failed counts. Added an Import button on the
+             listing page that reloads the list after a successful import. Also
+             refactored the title filter input to a draft pattern (no
+             setState-in-effect) so URL changes still sync on navigation.
+Files      : frontend/src/components/ImportDialog.tsx,
+             frontend/src/components/index.ts,
+             frontend/src/styles/import.css, frontend/src/index.css,
+             frontend/src/pages/DocumentsPage.tsx
+Verification: `npm run lint`, `npx tsc -b --noEmit`, `npm run format:check`, and
+             `npm run build` succeed. Against the real backend (disposable
+             postgres:16-alpine) verified a multi-file multipart import returns
+             per-file created/skipped results and applies the default tag (the
+             imported docs are findable via ?tag=bulk).
+Next       : T4.5 - Document viewer and Project Notes hierarchy
+
+--------------------------------------------------------------------------------
+[2026-09-17T23:49:08Z] TASK T4.5 - Document viewer and Project Notes hierarchy
+--------------------------------------------------------------------------------
+Phase      : 4 - Frontend Features
+Status     : DONE
+Summary    : Added the document viewer (PRD 3.2): rendered GFM Markdown via
+             react-markdown/remark-gfm with stable heading anchors, tags,
+             section and updated metadata, an Edit action, and a sticky table
+             of contents for non-hierarchical docs. For Project Notes it shows
+             breadcrumbs derived from the tree plus a collapsible sidebar
+             tree (TreeNav) for navigating the hierarchy. Added a
+             KnowledgeBasePage landing page with the tree and empty/loading/
+             error states. Split pure helpers (markdownHeadings, treeUtils)
+             from components to satisfy fast-refresh linting.
+Files      : frontend/src/pages/{DocumentView,KnowledgeBasePage}.tsx,
+             frontend/src/components/{MarkdownView,TreeNav,markdownHeadings,
+             treeUtils,index}.tsx|ts, frontend/src/styles/viewer.css,
+             frontend/src/index.css, frontend/src/App.tsx
+Verification: `npm run lint` (0 warnings), `npx tsc -b --noEmit`,
+             `npm run format:check`, and `npm run build` succeed (chunked:
+             components ~221 kB, editor lazy ~276 kB). Against the real backend
+             (disposable postgres:16-alpine) verified creating a nested
+             project note, GET /api/documents/tree returning the parent/child
+             hierarchy, and fetching the child document for the viewer.
+Next       : T4.6 - Global search experience

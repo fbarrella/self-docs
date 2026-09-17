@@ -1,0 +1,124 @@
+/** Editor page styles (T4.3). */
+
+.editor {
+  padding-block: var(--space-7);
+}
+
+.editor__header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+  margin-bottom: var(--space-5);
+}
+
+.editor__heading {
+  margin: 0;
+  font-size: var(--font-size-xl);
+}
+
+.editor__actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.editor__grid {
+  display: grid;
+  grid-template-columns: 20rem minmax(0, 1fr);
+  gap: var(--space-5);
+  align-items: start;
+}
+
+.editor__sidebar {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+}
+
+.editor__field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.editor__panel-title {
+  margin: 0 0 var(--space-3);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+}
+
+.editor__tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.editor__chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  margin-top: var(--space-3);
+}
+
+.editor__status {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+}
+
+.editor__status--error {
+  color: var(--color-danger);
+}
+
+.editor__status--success {
+  color: var(--color-success);
+}
+
+.editor__markdown {
+  overflow: hidden;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+}
+
+.editor__preview {
+  padding: var(--space-5);
+  min-height: 24rem;
+}
+
+.editor__preview h1,
+.editor__preview h2,
+.editor__preview h3 {
+  margin-top: var(--space-5);
+}
+
+.editor__preview pre {
+  padding: var(--space-4);
+  background-color: var(--color-tag-bg);
+  border-radius: var(--radius-md);
+  overflow-x: auto;
+}
+
+.editor__preview code {
+  background-color: var(--color-tag-bg);
+  padding: 0.1em 0.3em;
+  border-radius: var(--radius-sm);
+}
+
+.editor__preview pre code {
+  background: none;
+  padding: 0;
+}
+
+.editor__preview blockquote {
+  margin: var(--space-4) 0;
+  padding-left: var(--space-4);
+  border-left: 3px solid var(--color-accent);
+  color: var(--color-text-secondary);
+}
+
+@media (max-width: 900px) {
+  .editor__grid {
+    grid-template-columns: 1fr;
+  }
+}

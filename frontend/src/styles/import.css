@@ -1,0 +1,116 @@
+/** Import dialog styles (T4.4). */
+
+.import-dropzone {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-7) var(--space-4);
+  background-color: var(--color-bg);
+  border: 2px dashed var(--color-border);
+  border-radius: var(--radius-lg);
+  color: var(--color-text-secondary);
+  text-align: center;
+  cursor: pointer;
+  transition:
+    border-color var(--transition-fast),
+    background-color var(--transition-fast);
+}
+
+.import-dropzone:hover,
+.import-dropzone--active {
+  border-color: var(--color-accent-hover);
+  background-color: #f3f7e6;
+}
+
+.import-dropzone__title {
+  color: var(--color-text);
+  font-weight: var(--font-weight-semibold);
+}
+
+.import-filelist {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  max-height: 12rem;
+  margin: var(--space-4) 0 0;
+  padding: 0;
+  list-style: none;
+  overflow-y: auto;
+}
+
+.import-filelist__item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding: var(--space-2) var(--space-3);
+  background-color: var(--color-bg);
+  border-radius: var(--radius-md);
+  font-size: var(--font-size-sm);
+}
+
+.import-filelist__name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.import-filelist__size {
+  flex-shrink: 0;
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-xs);
+}
+
+.import-remove {
+  background: none;
+  border: none;
+  color: var(--color-text-secondary);
+  line-height: 0;
+  padding: var(--space-1);
+  border-radius: var(--radius-sm);
+}
+
+.import-remove:hover {
+  background-color: var(--color-tag-bg);
+  color: var(--color-danger);
+}
+
+.import-results {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  margin-top: var(--space-4);
+}
+
+.import-summary {
+  display: flex;
+  gap: var(--space-4);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+}
+
+.import-summary__created {
+  color: var(--color-success);
+}
+
+.import-summary__skipped {
+  color: var(--color-warning);
+}
+
+.import-summary__failed {
+  color: var(--color-danger);
+}
+
+.import-result-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  font-size: var(--font-size-sm);
+}
+
+.import-result-row__status {
+  color: var(--color-text-secondary);
+  flex-shrink: 0;
+}
