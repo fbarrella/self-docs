@@ -164,3 +164,25 @@ Verification: `gofmt -l .` and `go vet ./...` clean; integration suite passes
              smoke test of the built binary exercised create -> get -> list ->
              update -> tree -> delete -> 404 over HTTP.
 Next       : T2.2 - Tags API
+
+--------------------------------------------------------------------------------
+[2026-09-17T20:41:25Z] TASK T2.2 - Tags API
+--------------------------------------------------------------------------------
+Phase      : 2 - Backend API (Go/Gin)
+Status     : DONE
+Summary    : Implemented the tags API: GET /api/tags (search/sort/pagination),
+             GET /api/tags/popular (usage counts, private excluded), and
+             GET /api/tags/:name/documents (paginated documents by tag). Added
+             TagRepository.GetVisibleByNormalized so a tag attached only to
+             private documents returns 404 rather than leaking its existence.
+Files      : backend/internal/handler/tag_handler.go,
+             backend/internal/handler/tag_handler_test.go,
+             backend/internal/repository/tag_repository.go,
+             backend/internal/router/router.go
+Verification: `gofmt -l .` and `go vet ./...` clean; full integration suite
+             passes against disposable postgres:16-alpine. Tag tests assert
+             private-only tags never appear in list/popular, shared-tag counts
+             exclude private documents, documents-by-tag returns no private
+             docs, and a private-only tag 404s. Live smoke test confirmed
+             list/popular/by-tag plus 400 (invalid sort) and 404 (unknown tag).
+Next       : T2.3 - Markdown import API

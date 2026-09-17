@@ -141,6 +141,37 @@ func (r *TagRepository) GetByNormalized(ctx context.Context, normalized string) 
 	return tag, nil
 }
 
+// GetVisibleByNormalized is like GetByNormalized but treats a tag attached
+// exclusively to private documents as not found, so public callers cannot
+// detect its existence.
+func (r *TagRepository) GetVisibleByNormalized(ctx context.Context, normalized string) (model.Tag, error) {
+	var tag model.Tag
+	err := r.pool.QueryRow(ctx, `
+		SELECT t.name, COUNT(d.id) AS count
+		FROM tags t
+		LEFT JOIN document_tags dt ON dt.tag_id = t.id
+		LEFT JOIN documents d ON d.id = dt.document_id AND d.is_private = false
+		WHERE t.normalized = $1
+		  AND NOT (
+			EXISTS (SELECT 1 FROM document_tags x WHERE x.tag_id = t.id)
+			AND NOT EXISTS (
+				SELECT 1 FROM document_tags y
+				JOIN documents dy ON dy.id = y.document_id
+				WHERE y.tag_id = t.id AND dy.is_private = false
+			)
+		  )
+		GROUP BY t.id, t.name`,
+		NormalizeTag(normalized),
+	).Scan(&tag.Name, &tag.Count)
+	if err != nil {
+		if err == pgx.ErrNoRows {
+			return model.Tag{}, ErrNotFound
+		}
+		return model.Tag{}, fmt.Errorf("get visible tag: %w", err)
+	}
+	return tag, nil
+}
+
 // Delete removes a tag and its document links (document_tags cascades).
 func (r *TagRepository) Delete(ctx context.Context, name string) error {
 	tag, err := r.pool.Exec(ctx, `DELETE FROM tags WHERE normalized = $1`, NormalizeTag(name))

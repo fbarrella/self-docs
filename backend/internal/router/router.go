@@ -36,10 +36,9 @@ func New(deps Deps) *gin.Engine {
 	health := handler.NewHealthHandler(deps.Pool, deps.RedisEnabled, deps.Version)
 	engine.GET("/healthz", health.Health)
 
-	docs := handler.NewDocumentHandler(
-		repository.NewDocumentRepository(deps.Pool),
-		repository.NewActivityRepository(deps.Pool),
-	)
+	documentRepo := repository.NewDocumentRepository(deps.Pool)
+	docs := handler.NewDocumentHandler(documentRepo, repository.NewActivityRepository(deps.Pool))
+	tags := handler.NewTagHandler(repository.NewTagRepository(deps.Pool), documentRepo)
 
 	api := engine.Group("/api")
 	{
@@ -51,6 +50,10 @@ func New(deps Deps) *gin.Engine {
 		api.GET("/documents/:id", docs.Get)
 		api.PUT("/documents/:id", docs.Update)
 		api.DELETE("/documents/:id", docs.Delete)
+
+		api.GET("/tags", tags.List)
+		api.GET("/tags/popular", tags.Popular)
+		api.GET("/tags/:name/documents", tags.Documents)
 	}
 
 	return engine
