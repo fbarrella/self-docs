@@ -405,3 +405,26 @@ Verification: `npm run lint` (0 warnings), `npm run format:check`, `npx tsc -b
              --noEmit`, and `npm run build` all succeed; dev server returns 200
              for /_gallery and transforms the component barrel correctly.
 Next       : T3.4 - Layout shell: Header, Footer, responsive navigation
+
+--------------------------------------------------------------------------------
+[2026-09-17T23:00:34Z] TASK T3.4 - Layout shell: Header, Footer, responsive navigation
+--------------------------------------------------------------------------------
+Phase      : 3 - Frontend Foundation
+Status     : DONE
+Summary    : Implemented the persistent layout shell (DESIGN.md 2.1, 2.5, 3):
+             a sticky Header with the self-docs logo, centered primary nav
+             (Home, Documents, Knowledge Base, Private Notes, Settings), and an
+             avatar dropdown limited to global settings (no bell icon); a
+             responsive hamburger menu that collapses the nav below 900px; a
+             three-column Footer (brand/copyright/legal, Portal links, Useful
+             links); and an AppLayout with a skip link wrapping all routes via
+             an outlet. Added layout.css with breakpoints (nav collapse, footer
+             3/2/1 columns).
+Files      : frontend/src/components/layout/{Header,Footer,AppLayout,index}.tsx,
+             frontend/src/styles/layout.css, frontend/src/navigation.ts,
+             frontend/src/App.tsx, frontend/src/index.css
+Verification: `npm run lint`, `npm run format:check`, `npx tsc -b --noEmit`,
+             and `npm run build` succeed; dev server returns 200 for / and
+             transforms the Header; built bundle contains nav labels ("Knowledge
+             Base"), footer copy ("Portal links"), and layout classes.
+Next       : T4.1 - Dashboard page
