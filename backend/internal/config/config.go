@@ -33,6 +33,8 @@ type Config struct {
 	ReadTimeout     time.Duration
 	WriteTimeout    time.Duration
 	ShutdownTimeout time.Duration
+	// MaxImportBytes caps a single imported file. Defaults to 2 MiB.
+	MaxImportBytes int64
 }
 
 const (
@@ -41,6 +43,7 @@ const (
 	defaultReadTimeout     = 15 * time.Second
 	defaultWriteTimeout    = 30 * time.Second
 	defaultShutdownTimeout = 10 * time.Second
+	defaultMaxImportBytes  = 2 << 20 // 2 MiB
 )
 
 // Load reads configuration from the environment, loading backend/.env first
@@ -57,6 +60,7 @@ func Load() (*Config, error) {
 		ReadTimeout:        defaultReadTimeout,
 		WriteTimeout:       defaultWriteTimeout,
 		ShutdownTimeout:    defaultShutdownTimeout,
+		MaxImportBytes:     defaultMaxImportBytes,
 	}
 
 	var missing []string

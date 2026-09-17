@@ -197,6 +197,9 @@ func (r *DocumentRepository) List(ctx context.Context, opts ListDocumentsOptions
 	}
 	for i := range docs {
 		docs[i].Tags = tagMap[docs[i].ID]
+		if docs[i].Tags == nil {
+			docs[i].Tags = []string{}
+		}
 	}
 
 	pagination, _, _ := model.NewPagination(page, pageSize, total)
@@ -499,6 +502,9 @@ func (r *DocumentRepository) Search(ctx context.Context, opts SearchOptions) ([]
 	}
 	for i := range results {
 		results[i].Tags = tagMap[results[i].ID]
+		if results[i].Tags == nil {
+			results[i].Tags = []string{}
+		}
 	}
 
 	pagination, _, _ := model.NewPagination(page, pageSize, total)

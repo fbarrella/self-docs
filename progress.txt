@@ -186,3 +186,54 @@ Verification: `gofmt -l .` and `go vet ./...` clean; full integration suite
              docs, and a private-only tag 404s. Live smoke test confirmed
              list/popular/by-tag plus 400 (invalid sort) and 404 (unknown tag).
 Next       : T2.3 - Markdown import API
+
+--------------------------------------------------------------------------------
+[2026-09-17T20:45:45Z] TASK T2.3 - Markdown import API
+--------------------------------------------------------------------------------
+Phase      : 2 - Backend API (Go/Gin)
+Status     : DONE
+Summary    : Implemented POST /api/documents/import (multipart) accepting one or
+             more .md files with a target section, optional parent_id, and
+             optional default tags. Added a markdown parser for YAML
+             front-matter (title, sequence or comma-separated tags) and the
+             first H1 fallback, returning per-file results and a summary. Title
+             derivation order is front-matter -> H1 -> filename; non-markdown
+             and empty files are skipped, oversized files fail per-file, and
+             private imports are rejected (403). Added MAX_IMPORT_BYTES config.
+Files      : backend/internal/markdown/{markdown.go,markdown_test.go},
+             backend/internal/handler/import_handler.go,
+             backend/internal/handler/import_handler_test.go,
+             backend/internal/router/router.go,
+             backend/internal/config/config.go
+Verification: `gofmt -l .` and `go vet ./...` clean; full integration suite
+             passes against disposable postgres:16-alpine. Import tests cover
+             front-matter title/tags, filename fallback, multi-file with
+             skipped/failed counts, default tags, folder imports, and
+             validation/403 cases (private, bad section, parent misuse). Live
+             smoke test confirmed an uploaded .md persisted with parsed title,
+             tags, and front-matter stripped from the body.
+Next       : T2.4 - Global full-text search API
+
+--------------------------------------------------------------------------------
+[2026-09-17T20:52:20Z] TASK T2.4 - Global full-text search API
+--------------------------------------------------------------------------------
+Phase      : 2 - Backend API (Go/Gin)
+Status     : DONE
+Summary    : Added GET /api/search backed by the existing ranked repository
+             query (websearch_to_tsquery over title+content, ts_headline
+             snippets, additive tag matching). Validates page/page_size and
+             rejects section=private with 403; empty queries return an empty
+             page. Private documents are excluded regardless of session
+             (PRD 3.3). Also normalized document/tag results so tags serialize
+             as [] instead of null.
+Files      : backend/internal/handler/search_handler.go,
+             backend/internal/handler/search_handler_test.go,
+             backend/internal/router/router.go,
+             backend/internal/repository/document_repository.go
+Verification: `gofmt -l .` and `go vet ./...` clean; full integration suite
+             passes against disposable postgres:16-alpine. Search tests prove a
+             private-only term returns zero while a public term returns ranked
+             hits with snippets, tag-only matches work, pagination is correct,
+             empty queries are empty, and section=private is 403. Live smoke
+             test confirmed ranked results and a 403 for the private section.
+Next       : T2.5 - Private Archive access control

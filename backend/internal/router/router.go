@@ -14,10 +14,11 @@ import (
 
 // Deps are the dependencies required to build the router.
 type Deps struct {
-	Pool         *pgxpool.Pool
-	RedisEnabled bool
-	Version      string
-	CORSOrigins  []string
+	Pool           *pgxpool.Pool
+	RedisEnabled   bool
+	Version        string
+	CORSOrigins    []string
+	MaxImportBytes int64
 }
 
 // New builds the Gin engine with middleware and all registered routes.
@@ -37,8 +38,11 @@ func New(deps Deps) *gin.Engine {
 	engine.GET("/healthz", health.Health)
 
 	documentRepo := repository.NewDocumentRepository(deps.Pool)
-	docs := handler.NewDocumentHandler(documentRepo, repository.NewActivityRepository(deps.Pool))
+	activityRepo := repository.NewActivityRepository(deps.Pool)
+	docs := handler.NewDocumentHandler(documentRepo, activityRepo)
 	tags := handler.NewTagHandler(repository.NewTagRepository(deps.Pool), documentRepo)
+	importer := handler.NewImportHandler(documentRepo, activityRepo, deps.MaxImportBytes)
+	search := handler.NewSearchHandler(documentRepo)
 
 	api := engine.Group("/api")
 	{
@@ -47,6 +51,7 @@ func New(deps Deps) *gin.Engine {
 		api.POST("/documents", docs.Create)
 		api.GET("/documents", docs.List)
 		api.GET("/documents/tree", docs.Tree)
+		api.POST("/documents/import", importer.Import)
 		api.GET("/documents/:id", docs.Get)
 		api.PUT("/documents/:id", docs.Update)
 		api.DELETE("/documents/:id", docs.Delete)
@@ -54,6 +59,8 @@ func New(deps Deps) *gin.Engine {
 		api.GET("/tags", tags.List)
 		api.GET("/tags/popular", tags.Popular)
 		api.GET("/tags/:name/documents", tags.Documents)
+
+		api.GET("/search", search.Search)
 	}
 
 	return engine
