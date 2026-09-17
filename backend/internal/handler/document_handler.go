@@ -51,7 +51,7 @@ type updateDocumentRequest struct {
 func (h *DocumentHandler) Create(c *gin.Context) {
 	var req createDocumentRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		respondError(c, http.StatusBadRequest, CodeBadRequest, "malformed JSON body")
+		respondBindError(c, err)
 		return
 	}
 
@@ -134,7 +134,7 @@ func (h *DocumentHandler) Get(c *gin.Context) {
 func (h *DocumentHandler) Update(c *gin.Context) {
 	var req updateDocumentRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		respondError(c, http.StatusBadRequest, CodeBadRequest, "malformed JSON body")
+		respondBindError(c, err)
 		return
 	}
 

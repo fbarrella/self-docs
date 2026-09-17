@@ -237,3 +237,130 @@ Verification: `gofmt -l .` and `go vet ./...` clean; full integration suite
              empty queries are empty, and section=private is 403. Live smoke
              test confirmed ranked results and a 403 for the private section.
 Next       : T2.5 - Private Archive access control
+
+--------------------------------------------------------------------------------
+[2026-09-17T20:57:23Z] TASK T2.5 - Private Archive access control
+--------------------------------------------------------------------------------
+Phase      : 2 - Backend API (Go/Gin)
+Status     : DONE
+Summary    : Implemented the Private Archive vault: bcrypt master-password
+             verification, in-memory sliding 15-minute sessions with opaque
+             tokens, a fixed-window unlock rate limiter (5 attempts / 15 min),
+             and auth middleware guarding private routes (Bearer or HttpOnly
+             cookie). Added /api/private unlock, lock, and documents CRUD.
+             Private-only mutations are never written to the activity feed;
+             public endpoints continue to exclude private content, and private
+             routes never expose public documents.
+Files      : backend/internal/private/{password.go,session.go,ratelimit.go,
+             private_test.go},
+             backend/internal/repository/settings_repository.go,
+             backend/internal/handler/{private_auth.go,private_handler.go,
+             private_handler_test.go},
+             backend/internal/router/router.go, backend/go.mod, backend/go.sum
+Verification: `gofmt -l .` and `go vet ./...` clean; full integration suite
+             passes against disposable postgres:16-alpine. Tests cover unit
+             hashing/session/rate-limit behavior plus HTTP: 401 unauthenticated,
+             wrong password 401, lockout 429 (including correct password during
+             lockout), successful unlock + private CRUD, cookie transport,
+             lock invalidating the session, private exclusion from documents/
+             search/tags/popular, and private routes 404ing public documents.
+             Live smoke test exercised the full locked -> unlock -> create ->
+             leak-check -> lock -> relocked flow.
+Next       : T2.6 - Dashboard aggregation API
+
+--------------------------------------------------------------------------------
+[2026-09-17T21:56:36Z] TASK T2.6 - Dashboard aggregation API
+--------------------------------------------------------------------------------
+Phase      : 2 - Backend API (Go/Gin)
+Status     : DONE
+Summary    : Added GET /api/dashboard returning the four navigation cards with
+             per-section counts and routes, recently updated documents, popular
+             tags, and the recent activity feed. The private card reports
+             locked state from the session without extending it (new
+             SessionStore.Valid) and omits its count. All payload sections use
+             the existing private-excluding repository queries.
+Files      : backend/internal/handler/dashboard_handler.go,
+             backend/internal/handler/dashboard_handler_test.go,
+             backend/internal/handler/handler_test.go,
+             backend/internal/private/session.go,
+             backend/internal/router/router.go
+Verification: `gofmt -l .` and `go vet ./...` clean; full integration suite
+             passes against disposable postgres:16-alpine. Dashboard tests
+             assert card counts, a null private count, private exclusion from
+             recently_updated/popular_tags/activity, and the locked->unlocked
+             transition with a valid session. Live smoke test confirmed the
+             response shape and locked:false after unlocking.
+Next       : T2.7 - Activity log API
+
+--------------------------------------------------------------------------------
+[2026-09-17T22:24:00Z] TASK T2.7 - Activity log API
+--------------------------------------------------------------------------------
+Phase      : 2 - Backend API (Go/Gin)
+Status     : DONE
+Summary    : Added GET /api/activity with page/page_size validation, returning
+             the feed newest-first via the existing private-filtering repository
+             query. Mutations across create/update/delete/import/unlock are
+             already recorded by their handlers, so the endpoint surfaces the
+             chronological feed with title snapshots that survive deletes.
+Files      : backend/internal/handler/activity_handler.go,
+             backend/internal/handler/activity_handler_test.go,
+             backend/internal/router/router.go
+Verification: `gofmt -l .` and `go vet ./...` clean; full integration suite
+             passes against disposable postgres:16-alpine. Tests assert
+             newest-first ordering (update after create), private exclusion,
+             pagination across two pages, and 400 on invalid page. Live smoke
+             test showed created -> updated -> deleted entries in order with
+             the deleted document's title snapshot retained.
+Next       : T2.8 - Backend hardening and tests
+
+--------------------------------------------------------------------------------
+[2026-09-17T22:36:23Z] TASK T2.8 - Backend hardening and tests
+--------------------------------------------------------------------------------
+Phase      : 2 - Backend API (Go/Gin)
+Status     : DONE
+Summary    : Added a middleware package (request IDs, structured access logs,
+             security headers, JSON body size limits) and wired it into the
+             router, replacing Gin's default logger. Centralized body-binding
+             errors so oversized JSON returns 413 (payload_too_large) and
+             other parse failures stay 400. Added a golangci-lint config,
+             fixed every lint finding (errcheck, staticcheck), and added
+             router-level integration tests exercising the fully wired engine
+             plus middleware behavior.
+Files      : backend/internal/middleware/{middleware.go,middleware_test.go},
+             backend/internal/handler/response.go,
+             backend/internal/handler/{document_handler.go,private_handler.go},
+             backend/internal/router/{router.go,router_test.go},
+             backend/.golangci.yml, backend/README.md,
+             backend/internal/config/config.go,
+             backend/internal/handler/import_handler.go,
+             backend/internal/repository/{document_repository.go,
+             document_repository_test.go}
+Verification: `gofmt -l .`, `go vet ./...`, and `golangci-lint run ./...`
+             report 0 issues; full `go test ./...` passes against disposable
+             postgres:16-alpine including the new middleware and router suites.
+             Live smoke test confirmed X-Request-ID and security headers,
+             structured log lines, a 413 for an oversized body, and a
+             subsequent 201 for a normal create.
+Next       : T3.1 - Vite/React app and routing
+
+--------------------------------------------------------------------------------
+[2026-09-17T22:43:09Z] TASK T3.1 - Vite/React app and routing
+--------------------------------------------------------------------------------
+Phase      : 3 - Frontend Foundation
+Status     : DONE
+Summary    : Established the SPA shell: added react-router-dom with the full
+             route map from docs/api.md section 12 (dashboard, documents,
+             workflows, knowledge-base, cheat-sheets, private, search,
+             settings, document viewer, editor) plus a 404 redirect. Built a
+             typed API client (ApiError with error-envelope parsing, query
+             builder, FormData support, credentials: include) and a shared
+             types module mirroring the contract. Placeholder pages render each
+             route; VITE_API_BASE_URL config already provided.
+Files      : frontend/src/{App.tsx,main.tsx,routes.ts,index.css},
+             frontend/src/api/{client.ts,types.ts},
+             frontend/src/pages/PlaceholderPage.tsx, frontend/package.json,
+             frontend/package-lock.json
+Verification: `npm run lint`, `npm run format:check`, `npx tsc -b --noEmit`,
+             and `npm run build` all succeed. Dev server serves / and a deep
+             route (/knowledge-base) with HTTP 200 confirming SPA fallback.
+Next       : T3.2 - Design system and theming

@@ -17,3 +17,22 @@ body {
   margin: 0;
   min-height: 100svh;
 }
+
+#root {
+  min-height: 100svh;
+}
+
+.placeholder {
+  max-width: 60rem;
+  margin: 0 auto;
+  padding: 4rem 1.5rem;
+}
+
+.placeholder h1 {
+  margin: 0 0 0.5rem;
+}
+
+.placeholder p {
+  color: var(--color-text-secondary, #6c757d);
+  margin: 0;
+}

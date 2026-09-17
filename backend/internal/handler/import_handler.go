@@ -193,7 +193,7 @@ func readUpload(header *multipart.FileHeader, max int64) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	defer file.Close()
+	defer func() { _ = file.Close() }()
 
 	data, err := io.ReadAll(io.LimitReader(file, max+1))
 	if err != nil {

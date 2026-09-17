@@ -10,6 +10,18 @@ import (
 	"github.com/self-docs/backend/internal/repository"
 )
 
+// respondBindError maps JSON binding failures: oversized bodies become 413,
+// everything else is a malformed-body 400.
+func respondBindError(c *gin.Context, err error) {
+	var maxErr *http.MaxBytesError
+	if errors.As(err, &maxErr) {
+		respondError(c, http.StatusRequestEntityTooLarge, CodePayloadTooLarge,
+			"request body exceeds the configured size limit")
+		return
+	}
+	respondError(c, http.StatusBadRequest, CodeBadRequest, "malformed JSON body")
+}
+
 // Error codes from docs/api.md section 2.
 const (
 	CodeValidationError = "validation_error"

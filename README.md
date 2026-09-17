@@ -46,7 +46,11 @@ npm run dev
 
 ## Tooling
 
-- Backend: `gofmt`/`go vet` (run via `go vet ./...`)
+- Backend: `gofmt`, `go vet ./...`, `golangci-lint run ./...` (config in
+  `backend/.golangci.yml`), and `go test ./...`.
+- Integration tests: set `TEST_DATABASE_URL` to a disposable PostgreSQL
+  database to run the repository, handler, and router test suites; they are
+  skipped otherwise. The suites serialize themselves via an advisory lock.
 - Frontend: `oxlint` (`npm run lint`), Prettier (`npm run format`),
   TypeScript (`npm run typecheck`)
 

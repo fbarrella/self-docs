@@ -298,10 +298,16 @@ func TestDocumentCountsAndRecent(t *testing.T) {
 	ctx := context.Background()
 	repo := NewDocumentRepository(pool)
 
-	repo.Create(ctx, CreateDocumentInput{Title: "W1", Section: model.SectionWorkflow})
-	repo.Create(ctx, CreateDocumentInput{Title: "W2", Section: model.SectionWorkflow})
-	repo.Create(ctx, CreateDocumentInput{Title: "S1", Section: model.SectionCheatSheet})
-	repo.Create(ctx, CreateDocumentInput{Title: "P1", Section: model.SectionPrivate})
+	for _, in := range []CreateDocumentInput{
+		{Title: "W1", Section: model.SectionWorkflow},
+		{Title: "W2", Section: model.SectionWorkflow},
+		{Title: "S1", Section: model.SectionCheatSheet},
+		{Title: "P1", Section: model.SectionPrivate},
+	} {
+		if _, err := repo.Create(ctx, in); err != nil {
+			t.Fatalf("create %s: %v", in.Title, err)
+		}
+	}
 
 	counts, err := repo.CountBySection(ctx, false)
 	if err != nil {

@@ -617,7 +617,7 @@ func contentColumn(include bool) string {
 
 func buildDocumentFilters(opts ListDocumentsOptions) (string, []any) {
 	args := []any{opts.IncludePrivate}
-	clauses := []string{fmt.Sprintf("($1 OR d.is_private = false)")}
+	clauses := []string{"($1 OR d.is_private = false)"}
 
 	if len(opts.Sections) > 0 {
 		names := make([]string, len(opts.Sections))

@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"net/http"
 	"net/http/httptest"
 	"os"
 	"testing"
@@ -85,6 +86,21 @@ func doJSON(t *testing.T, engine *gin.Engine, method, path string, body any) *ht
 	}
 	req := httptest.NewRequest(method, path, reader)
 	req.Header.Set("Content-Type", "application/json")
+	rec := httptest.NewRecorder()
+	engine.ServeHTTP(rec, req)
+	return rec
+}
+
+// httptestNewRequest builds a GET request carrying the private session cookie.
+func httptestNewRequest(t *testing.T, method, path, token string) *http.Request {
+	t.Helper()
+	req := httptest.NewRequest(method, path, nil)
+	req.AddCookie(&http.Cookie{Name: PrivateCookieName, Value: token})
+	return req
+}
+
+// serve runs a prepared request through the engine.
+func serve(engine *gin.Engine, req *http.Request) *httptest.ResponseRecorder {
 	rec := httptest.NewRecorder()
 	engine.ServeHTTP(rec, req)
 	return rec

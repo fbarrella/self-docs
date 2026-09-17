@@ -1,0 +1,14 @@
+version: "2"
+
+linters:
+  default: standard
+  enable:
+    - errcheck
+    - staticcheck
+    - govet
+  exclusions:
+    rules:
+      # Test helpers may ignore errors that the assertion itself covers.
+      - path: _test\.go
+        linters:
+          - errcheck
