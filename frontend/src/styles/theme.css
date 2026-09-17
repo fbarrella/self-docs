@@ -1,0 +1,94 @@
+/**
+ * Design tokens derived from DESIGN.md section 1.
+ *
+ * All colors, typography, radii, shadows, and spacing used by the SPA are
+ * declared here once as CSS custom properties so components stay consistent
+ * and themable.
+ */
+
+:root {
+  /* ---- Color palette ---- */
+  --color-bg: #f8f9fa;
+  --color-surface: #ffffff;
+  --color-text: #212529;
+  --color-text-secondary: #6c757d;
+  --color-accent: #c4e349;
+  --color-accent-hover: #b5d63a;
+  --color-accent-text: #212529;
+  --color-tag-bg: #e9ecef;
+  --color-border: #dee2e6;
+  --color-icon-muted: #d9b64a;
+
+  /* Feedback colors (used by forms/toasts, not in the base reference) */
+  --color-danger: #dc3545;
+  --color-danger-soft: #f8d7da;
+  --color-success: #198754;
+  --color-success-soft: #d1e7dd;
+  --color-warning: #b8860b;
+  --color-warning-soft: #fff3cd;
+  --color-focus-ring: #8fb43f;
+
+  /* ---- Typography ---- */
+  --font-sans: 'Inter', system-ui, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  --font-mono:
+    ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, 'Liberation Mono', monospace;
+
+  --font-size-xs: 0.75rem; /* 12px */
+  --font-size-sm: 0.875rem; /* 14px */
+  --font-size-base: 1rem; /* 16px */
+  --font-size-md: 1.125rem; /* 18px */
+  --font-size-lg: 1.375rem; /* 22px */
+  --font-size-xl: 1.75rem; /* 28px */
+  --font-size-2xl: 2.25rem; /* 36px */
+
+  --font-weight-normal: 400;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 600;
+  --font-weight-bold: 700;
+
+  --line-height-tight: 1.2;
+  --line-height-normal: 1.5;
+  --line-height-relaxed: 1.7;
+
+  /* ---- Spacing scale ---- */
+  --space-1: 0.25rem; /* 4px */
+  --space-2: 0.5rem; /* 8px */
+  --space-3: 0.75rem; /* 12px */
+  --space-4: 1rem; /* 16px */
+  --space-5: 1.5rem; /* 24px */
+  --space-6: 2rem; /* 32px */
+  --space-7: 3rem; /* 48px */
+  --space-8: 4rem; /* 64px */
+
+  /* ---- Radius ---- */
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-pill: 999px;
+
+  /* ---- Shadows ---- */
+  --shadow-sm: 0 1px 2px rgba(33, 37, 41, 0.06);
+  --shadow-md: 0 2px 8px rgba(33, 37, 41, 0.08);
+  --shadow-lg: 0 8px 24px rgba(33, 37, 41, 0.12);
+
+  /* ---- Layout ---- */
+  --container-max: 72rem; /* 1152px */
+  --header-height: 4rem;
+
+  /* ---- Motion ---- */
+  --transition-fast: 120ms ease;
+  --transition-base: 200ms ease;
+
+  /* ---- Z-index scale ---- */
+  --z-header: 100;
+  --z-dropdown: 200;
+  --z-modal: 300;
+  --z-toast: 400;
+
+  color-scheme: light;
+  font-family: var(--font-sans);
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}

@@ -1,4 +1,5 @@
 import { Navigate, Route, Routes } from 'react-router-dom'
+import { Gallery } from './pages/Gallery'
 import { PlaceholderPage } from './pages/PlaceholderPage'
 import { routes } from './routes'
 
@@ -67,6 +68,7 @@ function App() {
         path={`${routes.editor}/:id?`}
         element={<PlaceholderPage title="Editor" description="Create or edit a document." />}
       />
+      {import.meta.env.DEV && <Route path="/_gallery" element={<Gallery />} />}
       <Route path="*" element={<Navigate to={routes.dashboard} replace />} />
     </Routes>
   )

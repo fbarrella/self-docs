@@ -364,3 +364,44 @@ Verification: `npm run lint`, `npm run format:check`, `npx tsc -b --noEmit`,
              and `npm run build` all succeed. Dev server serves / and a deep
              route (/knowledge-base) with HTTP 200 confirming SPA fallback.
 Next       : T3.2 - Design system and theming
+
+--------------------------------------------------------------------------------
+[2026-09-17T22:46:48Z] TASK T3.2 - Design system and theming
+--------------------------------------------------------------------------------
+Phase      : 3 - Frontend Foundation
+Status     : DONE
+Summary    : Encoded the DESIGN.md visual language as CSS custom properties in
+             styles/theme.css (background #f8f9fa, white surfaces, #212529 text,
+             #6c757d secondary, lime accent #c4e349, tag bg #e9ecef, border
+             #dee2e6, plus type/spacing/radius/shadow/z-index scales) and added
+             styles/base.css with reset, base element styles, and small layout
+             utilities. index.css now imports theme then base.
+Files      : frontend/src/styles/theme.css, frontend/src/styles/base.css,
+             frontend/src/index.css
+Verification: `npm run lint`, `npx tsc -b --noEmit`, and `npm run build` succeed;
+             the compiled CSS bundle contains the token declarations (verified
+             --color-accent #c4e349 and --color-bg #f8f9fa in dist).
+Next       : T3.3 - Base UI components
+
+--------------------------------------------------------------------------------
+[2026-09-17T22:54:43Z] TASK T3.3 - Base UI components
+--------------------------------------------------------------------------------
+Phase      : 3 - Frontend Foundation
+Status     : DONE
+Summary    : Built the reusable primitives from DESIGN.md 2.3-2.5 with a shared
+             components.css and barrel export: Button (accent/secondary/ghost/
+             danger, sizes, loading), Card, TagPill (display/clickable/active),
+             Input/Textarea (label/hint/error), SearchBar (pill with inner
+             green Search button), ListRow, SectionHeader, IconBadge, EmptyState,
+             Avatar, Spinner, Skeleton, Modal (focus trap, Escape, overlay
+             close, focus restore), and Dropdown (outside-click/Escape close).
+             Added a dev-only /_gallery page rendering every component state.
+Files      : frontend/src/styles/components.css, frontend/src/index.css,
+             frontend/src/components/{Button,Card,TagPill,Input,SearchBar,
+             ListRow,SectionHeader,IconBadge,EmptyState,Avatar,Spinner,Skeleton,
+             Modal,Dropdown,index}.ts(x), frontend/src/pages/Gallery.tsx,
+             frontend/src/App.tsx
+Verification: `npm run lint` (0 warnings), `npm run format:check`, `npx tsc -b
+             --noEmit`, and `npm run build` all succeed; dev server returns 200
+             for /_gallery and transforms the component barrel correctly.
+Next       : T3.4 - Layout shell: Header, Footer, responsive navigation
