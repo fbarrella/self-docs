@@ -60,3 +60,107 @@ Verification: Cross-checked against PRD 3.1-3.4 (documents, sections, search,
              performance); resolved slug-uniqueness and lock/locked naming
              inconsistencies before freeze.
 Next       : T1.1 - PostgreSQL schema and migrations
+
+--------------------------------------------------------------------------------
+[2026-09-17T20:20:17Z] TASK T1.1 - PostgreSQL schema and migrations
+--------------------------------------------------------------------------------
+Phase      : 1 - Backend Persistence
+Status     : DONE
+Summary    : Implemented the initial PostgreSQL schema as reversible SQL
+             migrations: document_section and activity_action enums, documents
+             (with hierarchy, is_private invariant, and FTS vector trigger),
+             tags, document_tags, activity_logs, and settings. Added an
+             updated_at trigger and partial unique indexes for slug scoping.
+Files      : backend/migrations/0001_init.up.sql,
+             backend/migrations/0001_init.down.sql
+Verification: Applied against a disposable postgres:16-alpine container with
+             `psql -v ON_ERROR_STOP=1`; `\dt` listed all 5 tables, up migration
+             is idempotent, negative tests confirmed the slug uniqueness,
+             parent-only-project_note, and is_private-derived CHECK constraints,
+             FTS trigger matched title/content, updated_at bumped on UPDATE, and
+             the down migration dropped all objects cleanly before a successful
+             re-apply.
+Next       : T1.2 - Backend bootstrap: config, DB pool, migrations runner
+
+--------------------------------------------------------------------------------
+[2026-09-17T20:27:01Z] TASK T1.2 - Backend bootstrap: config, DB pool, migrations runner
+--------------------------------------------------------------------------------
+Phase      : 1 - Backend Persistence
+Status     : DONE
+Summary    : Stood up the Gin server with env-based config (dotenv fallback,
+             fail-fast validation), a pgx connection pool, an embedded SQL
+             migration runner tracked in schema_migrations, optional
+             master-password seeding, CORS middleware, and a /healthz probe.
+             Added graceful shutdown on SIGINT/SIGTERM.
+Files      : backend/cmd/server/main.go, backend/internal/config/config.go,
+             backend/internal/db/db.go, backend/internal/handler/health.go,
+             backend/internal/router/router.go, backend/migrations/migrations.go,
+             backend/internal/config/config_test.go,
+             backend/migrations/migrations_test.go, backend/.env.example,
+             backend/go.mod, backend/go.sum
+Verification: `gofmt -l .`, `go vet ./...`, `go build ./...` clean; `go test
+             ./...` passes. Ran against a postgres:16-alpine container:
+             migrations applied on startup (schema_migrations v1), `/healthz`
+             and `/api/healthz` returned 200 with database ok, missing
+             DATABASE_URL exited 1 with a clear message, a second start skipped
+             applied migrations and did not overwrite a non-empty master hash,
+             and SIGTERM logged a clean shutdown.
+Next       : T1.3 - Domain models and repository layer
+
+--------------------------------------------------------------------------------
+[2026-09-17T20:31:16Z] TASK T1.3 - Domain models and repository layer
+--------------------------------------------------------------------------------
+Phase      : 1 - Backend Persistence
+Status     : DONE
+Summary    : Added domain models (section/action enums, Document, DocumentNode,
+             SearchResult, Tag, Activity, Pagination) and a slug generator, then
+             implemented document, tag, and activity repositories isolating all
+             SQL. Public queries hard-filter is_private; search ranks with
+             ts_rank/ts_headline over title+content+tags; the update path guards
+             hierarchy cycles via a recursive CTE. Fixed two bugs surfaced by the
+             integration tests: Create/Update now maintain the denormalized
+             is_private column (derived CHECK), and tag listing hides tags
+             attached only to private documents.
+Files      : backend/internal/model/document.go,
+             backend/internal/model/slug/slug.go,
+             backend/internal/model/slug/slug_test.go,
+             backend/internal/repository/{errors,querier,document_repository,
+             tag_repository,activity_repository}.go,
+             backend/internal/repository/{repository,document_repository,
+             tag_repository,activity_repository}_test.go
+Verification: `gofmt -l .` and `go vet ./...` clean; `go test ./...` green
+             (repository suite skipped without a DB). Ran the integration suite
+             against a disposable postgres:16-alpine via
+             `TEST_DATABASE_URL=... go test ./internal/repository/`: all 20
+             tests pass, including private-exclusion for list/get/tags/
+             popular/search/counts/recent and the cycle-rejection test.
+Next       : T2.1 - Documents CRUD API
+
+--------------------------------------------------------------------------------
+[2026-09-17T20:37:48Z] TASK T2.1 - Documents CRUD API
+--------------------------------------------------------------------------------
+Phase      : 2 - Backend API (Go/Gin)
+Status     : DONE
+Summary    : Implemented the public documents REST API and wired it into the
+             router: POST/GET/GET :id/PUT/DELETE /api/documents plus
+             GET /api/documents/tree. Added the standard error envelope and
+             repository-error mapping, query-parameter validation, section and
+             hierarchy rules, a nullable parent_id so PUT can clear parents,
+             and activity logging on create/update/delete. Private sections are
+             rejected on public routes (403 / excluded from listings). Fixed
+             two bugs found by the HTTP tests: include=content was discarded
+             during scanning, and delete logged activity after the row was gone
+             (FK violation).
+Files      : backend/internal/handler/{response.go,document_handler.go,
+             nullable.go,health.go}, backend/internal/router/router.go,
+             backend/internal/handler/{handler_test.go,
+             document_handler_test.go},
+             backend/internal/repository/{document_repository.go,
+             repository_test.go}
+Verification: `gofmt -l .` and `go vet ./...` clean; integration suite passes
+             against a disposable postgres:16-alpine (`TEST_DATABASE_URL=... go
+             test ./...`), covering each verb, validation/404/409/403 cases,
+             include=content, the notes tree, and activity recording. Live
+             smoke test of the built binary exercised create -> get -> list ->
+             update -> tree -> delete -> 404 over HTTP.
+Next       : T2.2 - Tags API
