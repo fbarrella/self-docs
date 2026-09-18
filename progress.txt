@@ -602,3 +602,36 @@ Verification: `npm run lint` (0 warnings), `npx tsc -b --noEmit`,
              create 201 -> list shows the note -> lock 204 -> subsequent GET
              401.
 Next       : T4.8 - Settings page
+
+--------------------------------------------------------------------------------
+[2026-09-18T00:10:32Z] TASK T4.8 - Settings page
+--------------------------------------------------------------------------------
+Phase      : 4 - Frontend Features
+Status     : DONE
+Summary    : Implemented the settings surface (PRD 4). Backend: added
+             GET /api/settings (version, redis_enabled, master_password_set,
+             private_session_open), PUT /api/settings/master-password (requires
+             a valid session or the correct current password, validates length,
+             stores a bcrypt hash, and clears all private sessions), and
+             DELETE /api/tags/:name; added SessionStore.Clear. Frontend: a
+             Settings page showing app info, a master-password change form
+             (current/new/confirm with client+server validation), and tag
+             management with per-tag deletion. Removed the now-unused
+             PlaceholderPage scaffold.
+Files      : backend/internal/handler/settings_handler.go,
+             backend/internal/handler/settings_handler_test.go,
+             backend/internal/handler/tag_handler.go,
+             backend/internal/private/session.go,
+             backend/internal/router/router.go,
+             frontend/src/pages/SettingsPage.tsx,
+             frontend/src/styles/settings.css, frontend/src/index.css,
+             frontend/src/api/client.ts, frontend/src/App.tsx
+Verification: `gofmt`, `go vet`, `golangci-lint run` (0 issues), and `go test
+             ./...` pass against disposable postgres:16-alpine (new settings/tag
+             tests included). Frontend `npm run lint` (0 warnings), `tsc -b`,
+             `format:check`, and `build` succeed. Live: GET settings returned
+             the expected shape, tag delete 204 and removed the tag, password
+             change via session returned 204 and invalidated the old session
+             (401), the new password unlocked (200), and the old password was
+             rejected (401).
+Next       : T4.9 - State management, API error handling, UX polish

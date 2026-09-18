@@ -198,6 +198,26 @@ export const api = {
       request<Paginated<Document>>(
         `/api/tags/${encodeURIComponent(name)}/documents${buildQuery({ ...params })}`,
       ),
+    remove: (name: string) =>
+      request<void>(`/api/tags/${encodeURIComponent(name)}`, { method: 'DELETE' }),
+  },
+
+  settings: {
+    get: () =>
+      request<{
+        data: {
+          version: string
+          redis_enabled: boolean
+          master_password_set: boolean
+          private_session_open: boolean
+        }
+      }>('/api/settings', { private: true }),
+    changeMasterPassword: (currentPassword: string, newPassword: string) =>
+      request<void>('/api/settings/master-password', {
+        method: 'PUT',
+        body: { current_password: currentPassword, new_password: newPassword },
+        private: true,
+      }),
   },
 
   search: (params: { q: string; section?: Section[]; page?: number; page_size?: number }) =>

@@ -1,0 +1,99 @@
+/** Settings page styles (T4.8). */
+
+.settings {
+  padding-block: var(--space-7);
+  max-width: 44rem;
+}
+
+.settings__section {
+  margin-bottom: var(--space-5);
+}
+
+.settings__row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+  padding: var(--space-3) 0;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.settings__row:last-child {
+  border-bottom: none;
+}
+
+.settings__label {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+}
+
+.settings__value {
+  font-weight: var(--font-weight-medium);
+}
+
+.settings__status {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--font-size-sm);
+}
+
+.settings__status--ok {
+  color: var(--color-success);
+}
+
+.settings__status--muted {
+  color: var(--color-text-secondary);
+}
+
+.settings__tag-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  margin-top: var(--space-4);
+}
+
+.settings__tag-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding: var(--space-2) var(--space-3);
+  background-color: var(--color-bg);
+  border-radius: var(--radius-md);
+}
+
+.settings__tag-name {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+}
+
+.settings__tag-count {
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-xs);
+}
+
+.settings__form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  margin-top: var(--space-4);
+}
+
+.settings__actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--space-3);
+}
+
+.settings__message {
+  font-size: var(--font-size-sm);
+}
+
+.settings__message--error {
+  color: var(--color-danger);
+}
+
+.settings__message--success {
+  color: var(--color-success);
+}

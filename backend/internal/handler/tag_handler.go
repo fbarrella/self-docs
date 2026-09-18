@@ -81,6 +81,16 @@ func (h *TagHandler) Popular(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"data": tags})
 }
 
+// Delete handles DELETE /api/tags/:name. Removing a tag detaches it from all
+// documents (document_tags cascades).
+func (h *TagHandler) Delete(c *gin.Context) {
+	if err := h.tags.Delete(c.Request.Context(), c.Param("name")); err != nil {
+		handleRepoError(c, err)
+		return
+	}
+	c.Status(http.StatusNoContent)
+}
+
 // Documents handles GET /api/tags/:name/documents.
 func (h *TagHandler) Documents(c *gin.Context) {
 	name := c.Param("name")

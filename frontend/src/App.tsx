@@ -7,8 +7,8 @@ import { DashboardPage } from './pages/DashboardPage'
 import { DocumentView } from './pages/DocumentView'
 import { DocumentsPage } from './pages/DocumentsPage'
 import { KnowledgeBasePage } from './pages/KnowledgeBasePage'
-import { PlaceholderPage } from './pages/PlaceholderPage'
 import { SearchPage } from './pages/SearchPage'
+import { SettingsPage } from './pages/SettingsPage'
 import { routes } from './routes'
 
 // The Markdown editor is heavy, so these editor-bearing routes load on demand.
@@ -66,12 +66,7 @@ function App() {
             }
           />
           <Route path={routes.search} element={<SearchPage />} />
-          <Route
-            path={routes.settings}
-            element={
-              <PlaceholderPage title="Settings" description="Global application settings." />
-            }
-          />
+          <Route path={routes.settings} element={<SettingsPage />} />
           <Route path={`${routes.documents}/:id`} element={<DocumentView />} />
           <Route
             path={`${routes.editor}/:id?`}

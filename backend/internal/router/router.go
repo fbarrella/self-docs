@@ -67,14 +67,16 @@ func New(deps Deps) *gin.Engine {
 		sessions,
 		privateAuth,
 	)
+	settingsRepo := repository.NewSettingsRepository(deps.Pool)
 	privateHandler := handler.NewPrivateHandler(
-		repository.NewSettingsRepository(deps.Pool),
+		settingsRepo,
 		sessions,
 		private.NewRateLimiter(private.MaxUnlockAttempts, private.UnlockWindow),
 		privateAuth,
 		documentRepo,
 		activityRepo,
 	)
+	settings := handler.NewSettingsHandler(settingsRepo, sessions, deps.Version, deps.RedisEnabled)
 
 	// limitJSON caps JSON bodies; upload routes enforce their own limits.
 	limitJSON := middleware.MaxBodyBytes(maxJSONBodyBytes)
@@ -94,10 +96,14 @@ func New(deps Deps) *gin.Engine {
 		api.GET("/tags", tags.List)
 		api.GET("/tags/popular", tags.Popular)
 		api.GET("/tags/:name/documents", tags.Documents)
+		api.DELETE("/tags/:name", limitJSON, tags.Delete)
 
 		api.GET("/search", search.Search)
 		api.GET("/dashboard", dashboard.Dashboard)
 		api.GET("/activity", activity.List)
+
+		api.GET("/settings", settings.Get)
+		api.PUT("/settings/master-password", limitJSON, settings.ChangeMasterPassword)
 
 		api.POST("/private/unlock", limitJSON, privateHandler.Unlock)
 		// Lock is unguarded so an already-expired session can still clear its

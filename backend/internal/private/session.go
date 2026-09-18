@@ -104,6 +104,14 @@ func (s *SessionStore) Invalidate(token string) {
 	delete(s.sessions, token)
 }
 
+// Clear invalidates every session. Used when the master password changes so
+// previously unlocked sessions cannot continue.
+func (s *SessionStore) Clear() {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	s.sessions = make(map[string]session)
+}
+
 // prune removes expired sessions; called opportunistically by Create.
 func (s *SessionStore) prune() {
 	now := s.now()
