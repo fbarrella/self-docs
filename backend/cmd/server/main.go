@@ -14,6 +14,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 
+	"github.com/self-docs/backend/internal/cache"
 	"github.com/self-docs/backend/internal/config"
 	"github.com/self-docs/backend/internal/db"
 	"github.com/self-docs/backend/internal/router"
@@ -52,11 +53,19 @@ func run() error {
 		return err
 	}
 
+	// Optional Redis cache; a disabled cache is a safe no-op.
+	c := cache.New(ctx, cfg.RedisURL, "selfdocs")
+	defer func() { _ = c.Close() }()
+	if cfg.RedisEnabled() && !c.Enabled() {
+		log.Printf("warning: REDIS_URL set but Redis is unreachable; continuing without cache")
+	}
+
 	engine := router.New(router.Deps{
 		Pool:         pool.Pool,
 		RedisEnabled: cfg.RedisEnabled(),
 		Version:      version,
 		CORSOrigins:  cfg.CORSOrigins,
+		Cache:        c,
 	})
 
 	server := &http.Server{

@@ -1,10 +1,12 @@
 package handler
 
 import (
+	"context"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
 
+	"github.com/self-docs/backend/internal/cache"
 	"github.com/self-docs/backend/internal/model"
 	"github.com/self-docs/backend/internal/private"
 	"github.com/self-docs/backend/internal/repository"
@@ -17,17 +19,28 @@ type DashboardHandler struct {
 	activity *repository.ActivityRepository
 	sessions *private.SessionStore
 	auth     *PrivateAuth
+	cache    *cache.Cache
 }
 
-// NewDashboardHandler constructs a DashboardHandler.
+// NewDashboardHandler constructs a DashboardHandler. cache may be nil.
 func NewDashboardHandler(
 	docs *repository.DocumentRepository,
 	tags *repository.TagRepository,
 	activity *repository.ActivityRepository,
 	sessions *private.SessionStore,
 	auth *PrivateAuth,
+	cache *cache.Cache,
 ) *DashboardHandler {
-	return &DashboardHandler{docs: docs, tags: tags, activity: activity, sessions: sessions, auth: auth}
+	return &DashboardHandler{docs: docs, tags: tags, activity: activity, sessions: sessions, auth: auth, cache: cache}
+}
+
+// cachedDashboard is the cacheable portion of the dashboard response. The
+// private card's locked state is per-session and is not cached.
+type cachedDashboard struct {
+	Cards           []dashboardCard  `json:"cards"`
+	RecentlyUpdated []recentItem     `json:"recently_updated"`
+	PopularTags     []model.Tag      `json:"popular_tags"`
+	Activity        []model.Activity `json:"activity"`
 }
 
 // dashboardCard is one navigation card.
@@ -48,28 +61,58 @@ type recentItem struct {
 }
 
 // Dashboard handles GET /api/dashboard.
+//
+// The document-derived payload is cached in Redis when configured; the private
+// card's locked state is always computed from the current session so an
+// unlock/lock is reflected immediately.
 func (h *DashboardHandler) Dashboard(c *gin.Context) {
 	ctx := c.Request.Context()
 
-	counts, err := h.docs.CountBySection(ctx, false)
-	if err != nil {
-		handleRepoError(c, err)
-		return
+	unlocked := h.isUnlocked(c)
+
+	var payload cachedDashboard
+	if !h.cache.GetJSON(ctx, cache.KeyDashboard, &payload) {
+		built, err := h.buildDashboard(ctx)
+		if err != nil {
+			handleRepoError(c, err)
+			return
+		}
+		payload = built
+		h.cache.SetJSON(ctx, cache.KeyDashboard, payload)
 	}
 
-	unlocked := h.isUnlocked(c)
+	// Override the per-session private card after cache retrieval.
+	for i := range payload.Cards {
+		if payload.Cards[i].ID == model.SectionPrivate {
+			payload.Cards[i] = privateCard(unlocked)
+		}
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"cards":            payload.Cards,
+		"recently_updated": payload.RecentlyUpdated,
+		"popular_tags":     payload.PopularTags,
+		"activity":         payload.Activity,
+	})
+}
+
+// buildDashboard assembles the cacheable dashboard payload from the database.
+func (h *DashboardHandler) buildDashboard(ctx context.Context) (cachedDashboard, error) {
+	counts, err := h.docs.CountBySection(ctx, false)
+	if err != nil {
+		return cachedDashboard{}, err
+	}
 
 	cards := []dashboardCard{
 		cardFor(model.SectionWorkflow, counts),
 		cardFor(model.SectionProjectNote, counts),
 		cardFor(model.SectionCheatSheet, counts),
-		privateCard(unlocked),
+		privateCard(false),
 	}
 
 	recent, err := h.docs.RecentlyUpdated(ctx, 8, false)
 	if err != nil {
-		handleRepoError(c, err)
-		return
+		return cachedDashboard{}, err
 	}
 	recentItems := make([]recentItem, 0, len(recent))
 	for _, doc := range recent {
@@ -83,8 +126,7 @@ func (h *DashboardHandler) Dashboard(c *gin.Context) {
 
 	popularTags, err := h.tags.Popular(ctx, 12)
 	if err != nil {
-		handleRepoError(c, err)
-		return
+		return cachedDashboard{}, err
 	}
 	if popularTags == nil {
 		popularTags = []model.Tag{}
@@ -92,19 +134,18 @@ func (h *DashboardHandler) Dashboard(c *gin.Context) {
 
 	activity, err := h.activity.Recent(ctx, 10)
 	if err != nil {
-		handleRepoError(c, err)
-		return
+		return cachedDashboard{}, err
 	}
 	if activity == nil {
 		activity = []model.Activity{}
 	}
 
-	c.JSON(http.StatusOK, gin.H{
-		"cards":            cards,
-		"recently_updated": recentItems,
-		"popular_tags":     popularTags,
-		"activity":         activity,
-	})
+	return cachedDashboard{
+		Cards:           cards,
+		RecentlyUpdated: recentItems,
+		PopularTags:     popularTags,
+		Activity:        activity,
+	}, nil
 }
 
 // isUnlocked reports whether the request carries a valid private session,

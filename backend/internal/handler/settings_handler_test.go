@@ -29,7 +29,7 @@ func newSettingsTestServer(t *testing.T) (*gin.Engine, *pgxpool.Pool) {
 
 	sessions := private.NewSessionStore(private.SessionTTL)
 	settings := NewSettingsHandler(settingsRepo, sessions, "test", false)
-	tags := NewTagHandler(repository.NewTagRepository(pool), repository.NewDocumentRepository(pool))
+	tags := NewTagHandler(repository.NewTagRepository(pool), repository.NewDocumentRepository(pool), nil)
 
 	engine.GET("/api/settings", settings.Get)
 	engine.PUT("/api/settings/master-password", settings.ChangeMasterPassword)

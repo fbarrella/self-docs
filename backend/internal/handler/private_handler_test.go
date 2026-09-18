@@ -26,7 +26,7 @@ func newPrivateTestServer(t *testing.T) (*gin.Engine, *pgxpool.Pool) {
 	documentRepo := repository.NewDocumentRepository(pool)
 	activityRepo := repository.NewActivityRepository(pool)
 	settingsRepo := repository.NewSettingsRepository(pool)
-	tags := NewTagHandler(repository.NewTagRepository(pool), documentRepo)
+	tags := NewTagHandler(repository.NewTagRepository(pool), documentRepo, nil)
 	search := NewSearchHandler(documentRepo)
 
 	hash, err := private.HashPassword(testMasterPassword)

@@ -7,6 +7,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 
+	"github.com/self-docs/backend/internal/cache"
 	"github.com/self-docs/backend/internal/model"
 	"github.com/self-docs/backend/internal/repository"
 )
@@ -15,11 +16,12 @@ import (
 type DocumentHandler struct {
 	docs     *repository.DocumentRepository
 	activity *repository.ActivityRepository
+	cache    *cache.Cache
 }
 
-// NewDocumentHandler constructs a DocumentHandler.
-func NewDocumentHandler(docs *repository.DocumentRepository, activity *repository.ActivityRepository) *DocumentHandler {
-	return &DocumentHandler{docs: docs, activity: activity}
+// NewDocumentHandler constructs a DocumentHandler. cache may be nil.
+func NewDocumentHandler(docs *repository.DocumentRepository, activity *repository.ActivityRepository, cache *cache.Cache) *DocumentHandler {
+	return &DocumentHandler{docs: docs, activity: activity, cache: cache}
 }
 
 // createDocumentRequest is the POST /api/documents body (api.md 4.1).
@@ -91,6 +93,7 @@ func (h *DocumentHandler) Create(c *gin.Context) {
 	}
 
 	h.logActivity(c, model.ActionCreated, &doc)
+	h.cache.InvalidateDocuments(c.Request.Context())
 	c.JSON(http.StatusCreated, doc)
 }
 
@@ -165,6 +168,7 @@ func (h *DocumentHandler) Update(c *gin.Context) {
 	}
 
 	h.logActivity(c, model.ActionUpdated, &doc)
+	h.cache.InvalidateDocuments(c.Request.Context())
 	c.JSON(http.StatusOK, doc)
 }
 
@@ -178,6 +182,7 @@ func (h *DocumentHandler) Delete(c *gin.Context) {
 	// Record before deleting so the FK reference is valid; the delete then sets
 	// activity_logs.document_id to NULL while keeping the title snapshot.
 	h.logActivity(c, model.ActionDeleted, &doc)
+	h.cache.InvalidateDocuments(c.Request.Context())
 	if err := h.docs.Delete(c.Request.Context(), c.Param("id"), false); err != nil {
 		handleRepoError(c, err)
 		return

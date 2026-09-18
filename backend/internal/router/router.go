@@ -8,6 +8,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/jackc/pgx/v5/pgxpool"
 
+	"github.com/self-docs/backend/internal/cache"
 	"github.com/self-docs/backend/internal/handler"
 	"github.com/self-docs/backend/internal/middleware"
 	"github.com/self-docs/backend/internal/private"
@@ -27,6 +28,8 @@ type Deps struct {
 	// SecureCookies sets the Secure flag on the private session cookie. Leave
 	// false for local HTTP; set true behind TLS.
 	SecureCookies bool
+	// Cache is the optional Redis cache. A nil or disabled cache is a no-op.
+	Cache *cache.Cache
 }
 
 // New builds the Gin engine with middleware and all registered routes.
@@ -50,11 +53,12 @@ func New(deps Deps) *gin.Engine {
 	health := handler.NewHealthHandler(deps.Pool, deps.RedisEnabled, deps.Version)
 	engine.GET("/healthz", health.Health)
 
+	c := deps.Cache
 	documentRepo := repository.NewDocumentRepository(deps.Pool)
 	activityRepo := repository.NewActivityRepository(deps.Pool)
-	docs := handler.NewDocumentHandler(documentRepo, activityRepo)
-	tags := handler.NewTagHandler(repository.NewTagRepository(deps.Pool), documentRepo)
-	importer := handler.NewImportHandler(documentRepo, activityRepo, deps.MaxImportBytes)
+	docs := handler.NewDocumentHandler(documentRepo, activityRepo, c)
+	tags := handler.NewTagHandler(repository.NewTagRepository(deps.Pool), documentRepo, c)
+	importer := handler.NewImportHandler(documentRepo, activityRepo, c, deps.MaxImportBytes)
 	search := handler.NewSearchHandler(documentRepo)
 	activity := handler.NewActivityHandler(activityRepo)
 
@@ -66,6 +70,7 @@ func New(deps Deps) *gin.Engine {
 		activityRepo,
 		sessions,
 		privateAuth,
+		c,
 	)
 	settingsRepo := repository.NewSettingsRepository(deps.Pool)
 	privateHandler := handler.NewPrivateHandler(

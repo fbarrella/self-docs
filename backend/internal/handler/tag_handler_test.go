@@ -23,7 +23,7 @@ func newTagTestServer(t *testing.T) (*gin.Engine, func(string, string, ...string
 	t.Helper()
 	engine, pool := newTestServer(t)
 
-	tags := NewTagHandler(repository.NewTagRepository(pool), repository.NewDocumentRepository(pool))
+	tags := NewTagHandler(repository.NewTagRepository(pool), repository.NewDocumentRepository(pool), nil)
 	engine.GET("/api/tags", tags.List)
 	engine.GET("/api/tags/popular", tags.Popular)
 	engine.GET("/api/tags/:name/documents", tags.Documents)
@@ -119,7 +119,7 @@ func TestTagsPrivateIsolation(t *testing.T) {
 	insertPrivate(t, pool, "Secret One", "private-only", "shared")
 	insertPrivate(t, pool, "Secret Two", "private-only")
 
-	tags := NewTagHandler(repository.NewTagRepository(pool), repository.NewDocumentRepository(pool))
+	tags := NewTagHandler(repository.NewTagRepository(pool), repository.NewDocumentRepository(pool), nil)
 	engine.GET("/api/tags", tags.List)
 	engine.GET("/api/tags/popular", tags.Popular)
 	engine.GET("/api/tags/:name/documents", tags.Documents)

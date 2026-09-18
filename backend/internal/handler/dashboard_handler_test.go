@@ -35,7 +35,7 @@ func newDashboardTestServer(t *testing.T) (*gin.Engine, *pgxpool.Pool, *private.
 
 	sessions := private.NewSessionStore(private.SessionTTL)
 	auth := NewPrivateAuth(sessions, false)
-	dashboard := NewDashboardHandler(documentRepo, tags, activityRepo, sessions, auth)
+	dashboard := NewDashboardHandler(documentRepo, tags, activityRepo, sessions, auth, nil)
 	engine.GET("/api/dashboard", dashboard.Dashboard)
 	return engine, pool, sessions, auth
 }

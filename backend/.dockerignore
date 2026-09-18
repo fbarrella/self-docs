@@ -1,0 +1,12 @@
+# Build artifacts and local tooling that must not enter the image context.
+.git
+.gitignore
+*.md
+tmp/
+bin/
+*.log
+.env
+.env.*
+!.env.example
+Dockerfile
+.dockerignore

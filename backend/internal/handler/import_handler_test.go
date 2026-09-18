@@ -31,6 +31,7 @@ func newImportTestServer(t *testing.T) (*gin.Engine, *pgxpool.Pool) {
 	importer := NewImportHandler(
 		repository.NewDocumentRepository(pool),
 		repository.NewActivityRepository(pool),
+		nil,
 		1<<20,
 	)
 	engine.POST("/api/documents/import", importer.Import)

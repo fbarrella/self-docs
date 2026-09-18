@@ -60,6 +60,7 @@ func newTestServer(t *testing.T) (*gin.Engine, *pgxpool.Pool) {
 	docs := NewDocumentHandler(
 		repository.NewDocumentRepository(pool),
 		repository.NewActivityRepository(pool),
+		nil,
 	)
 	engine.POST("/api/documents", docs.Create)
 	engine.GET("/api/documents", docs.List)

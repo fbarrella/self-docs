@@ -6,19 +6,21 @@ import (
 
 	"github.com/gin-gonic/gin"
 
+	"github.com/self-docs/backend/internal/cache"
 	"github.com/self-docs/backend/internal/model"
 	"github.com/self-docs/backend/internal/repository"
 )
 
 // TagHandler serves the tags API (docs/api.md section 5).
 type TagHandler struct {
-	tags *repository.TagRepository
-	docs *repository.DocumentRepository
+	tags  *repository.TagRepository
+	docs  *repository.DocumentRepository
+	cache *cache.Cache
 }
 
-// NewTagHandler constructs a TagHandler.
-func NewTagHandler(tags *repository.TagRepository, docs *repository.DocumentRepository) *TagHandler {
-	return &TagHandler{tags: tags, docs: docs}
+// NewTagHandler constructs a TagHandler. cache may be nil.
+func NewTagHandler(tags *repository.TagRepository, docs *repository.DocumentRepository, cache *cache.Cache) *TagHandler {
+	return &TagHandler{tags: tags, docs: docs, cache: cache}
 }
 
 // List handles GET /api/tags.
@@ -73,11 +75,23 @@ func (h *TagHandler) Popular(c *gin.Context) {
 		limit = n
 	}
 
-	tags, err := h.tags.Popular(c.Request.Context(), limit)
+	// Popular tags are read-mostly; serve from cache when available.
+	var tags []model.Tag
+	var err error
+	if h.cache.GetJSON(c.Request.Context(), cache.KeyPopularTags, &tags) {
+		c.JSON(http.StatusOK, gin.H{"data": tags})
+		return
+	}
+
+	tags, err = h.tags.Popular(c.Request.Context(), limit)
 	if err != nil {
 		handleRepoError(c, err)
 		return
 	}
+	if tags == nil {
+		tags = []model.Tag{}
+	}
+	h.cache.SetJSON(c.Request.Context(), cache.KeyPopularTags, tags)
 	c.JSON(http.StatusOK, gin.H{"data": tags})
 }
 

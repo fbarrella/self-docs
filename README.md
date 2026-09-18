@@ -13,9 +13,9 @@ The product requirements live in [`PRD.md`](./PRD.md), the UI specification in
 ## Repository layout
 
 ```
-backend/    Go/Gin API, migrations, and internal packages
-frontend/   React + Vite + TypeScript single-page app
-deploy/     Dockerfiles, compose stack, and deployment assets
+backend/    Go/Gin API, migrations, Dockerfile, and internal packages
+frontend/   React + Vite + TypeScript SPA, Dockerfile, and nginx config
+docker-compose.yml  Full local stack (db, backend, frontend, optional cache)
 docs/       API contract and data model documentation
 progress.txt  Append-only log of completed tasks
 ```
@@ -43,6 +43,30 @@ cd frontend
 npm install
 npm run dev
 ```
+
+## Docker Compose (recommended)
+
+The whole stack (PostgreSQL, Go API, nginx-served SPA) runs with one command:
+
+```bash
+cp .env.example .env   # optional; defaults work out of the box
+docker compose up --build
+```
+
+Then open http://localhost:8080. The frontend serves the SPA and proxies `/api`
+to the backend, so the browser only talks to one origin. PostgreSQL data is
+stored in the `self-docs_db-data` volume and survives restarts.
+
+Optional Redis cache:
+
+```bash
+REDIS_URL=redis://cache:6379 docker compose --profile cache up --build
+```
+
+Set `MASTER_PASSWORD_HASH` in `.env` to seed the Private Archive master
+password at first boot (see `.env.example` for how to generate it), or configure
+it later from the Settings page. Useful overrides: `APP_PORT`, `POSTGRES_PORT`,
+`POSTGRES_USER`/`POSTGRES_PASSWORD`/`POSTGRES_DB`.
 
 ## Tooling
 

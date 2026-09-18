@@ -661,3 +661,99 @@ Verification: `npm run lint` (0 warnings), `npx tsc -b --noEmit`,
              backend running the /healthz probe fails as expected, which drives
              the OfflineBanner instead of blank screens.
 Next       : T5.1 - Backend Dockerfile
+
+--------------------------------------------------------------------------------
+[2026-09-18T00:20:33Z] TASK T5.1 - Backend Dockerfile
+--------------------------------------------------------------------------------
+Phase      : 5 - Infrastructure & Deployment
+Status     : DONE
+Summary    : Added a multi-stage backend Dockerfile: a golang:1.27-alpine build
+             stage producing a static stripped binary, and an alpine:3.22
+             runtime with ca-certificates, a non-root `app` user, an EXPOSE
+             8080, and a wget-based HEALTHCHECK against /healthz. Added
+             backend/.dockerignore to keep sources, secrets, and docs out of
+             the build context.
+Files      : backend/Dockerfile, backend/.dockerignore
+Verification: `docker build -t selfdocs-backend:test .` succeeded. Ran the image
+             against a postgres:16-alpine container on a shared network:
+             `id` confirmed uid=100(app) (non-root), /healthz returned 200 with
+             database ok, migrations applied on startup, POST /api/documents
+             returned 201, and the container healthcheck transitioned to
+             `healthy`.
+Next       : T5.2 - Frontend Dockerfile
+
+--------------------------------------------------------------------------------
+[2026-09-18T00:24:53Z] TASK T5.2 - Frontend Dockerfile
+--------------------------------------------------------------------------------
+Phase      : 5 - Infrastructure & Deployment
+Status     : DONE
+Summary    : Added a multi-stage frontend Dockerfile (node:24-alpine build with
+             VITE_API_BASE_URL="" for same-origin calls, nginx:1.29-alpine
+             runtime) plus nginx.conf serving the SPA with try_files fallback,
+             long-caching fingerprinted /assets, gzip, and /api + /healthz
+             reverse proxying to the backend. Used Docker's embedded resolver
+             with a variable proxy_pass so nginx starts even if the backend is
+             not yet up. Added frontend/.dockerignore.
+Files      : frontend/Dockerfile, frontend/nginx.conf, frontend/.dockerignore
+Verification: `docker build -t selfdocs-frontend:test .` succeeded. Ran the
+             frontend, backend, and postgres containers on one network: SPA root
+             and a deep route (/knowledge-base) both returned 200, /healthz
+             proxied 200 with database ok, POST /api/documents through the proxy
+             returned 201 and the document listed, assets carried a single
+             `public, max-age=31536000, immutable` Cache-Control, and the
+             container healthcheck reached `healthy`.
+Next       : T5.3 - Docker Compose orchestration
+
+--------------------------------------------------------------------------------
+[2026-09-18T00:37:13Z] TASK T5.3 - Docker Compose orchestration
+--------------------------------------------------------------------------------
+Phase      : 5 - Infrastructure & Deployment
+Status     : DONE
+Summary    : Added docker-compose.yml orchestrating db (postgres:16-alpine,
+             named volume, healthcheck), backend (built image, depends_on db
+             healthy, DATABASE_URL derived from env, healthcheck), and frontend
+             (built image, depends_on backend healthy, host port APP_PORT), plus
+             an optional Redis service behind the `cache` profile. Added a root
+             .env.example documenting APP_PORT, POSTGRES_*, MASTER_PASSWORD_HASH,
+             REDIS_URL, and CORS_ORIGINS, and documented the compose workflow in
+             the README.
+Files      : docker-compose.yml, .env.example, README.md
+Verification: `docker compose config` is valid. `docker compose up --build -d`
+             came up with the expected healthcheck ordering (db healthy ->
+             backend healthy -> frontend). End-to-end: SPA and deep route 200,
+             proxied /healthz 200, POST /api/documents 201, dashboard counts and
+             recently-updated reflect the doc, and /api/search finds it.
+             Confirmed the document persisted across `docker compose restart
+             db backend`. Enabling the cache profile reported redis: enabled in
+             /healthz. `docker compose down -v` removed all containers, network,
+             and the volume.
+Next       : T5.4 - Redis caching layer (optional/recommended)
+
+--------------------------------------------------------------------------------
+[2026-09-18T00:53:33Z] TASK T5.4 - Redis caching layer (optional/recommended)
+--------------------------------------------------------------------------------
+Phase      : 5 - Infrastructure & Deployment
+Status     : DONE
+Summary    : Added an optional Redis cache using go-redis that degrades to a
+             no-op when REDIS_URL is unset, invalid, or unreachable (startup
+             never blocks). Cached the dashboard payload and popular tags with a
+             5-minute TTL; document/import writes invalidate both keys. The
+             dashboard cache stores only the document-derived data, while the
+             private card's locked state is always computed from the current
+             session so unlock/lock is reflected even on a cache hit. /healthz
+             reports redis enabled/disabled from config.
+Files      : backend/internal/cache/{cache.go,keys.go,cache_test.go},
+             backend/internal/handler/{dashboard_handler.go,tag_handler.go,
+             document_handler.go,import_handler.go},
+             backend/internal/router/router.go, backend/cmd/server/main.go,
+             backend/internal/handler/*_test.go, backend/go.mod, backend/go.sum
+Verification: `gofmt`, `go vet`, `golangci-lint run` (0 issues), and `go test
+             ./...` pass (including cache unit tests; integration tests run with
+             TEST_REDIS_URL). Against disposable postgres + redis: the cache
+             connected, dashboard/popular keys appeared under `selfdocs:*`,
+             creating and deleting documents emptied those keys, and the
+             dashboard reflected updated counts. Verified the private card is
+             locked=true when locked and locked=false on a cache hit after
+             unlock. With REDIS_URL pointed at a dead port the server logged a
+             warning, started, and served dashboard/popular/create normally.
+Next       : T6.1 - Responsive and accessibility audit

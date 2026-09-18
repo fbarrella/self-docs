@@ -10,6 +10,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 
+	"github.com/self-docs/backend/internal/cache"
 	"github.com/self-docs/backend/internal/markdown"
 	"github.com/self-docs/backend/internal/model"
 	"github.com/self-docs/backend/internal/repository"
@@ -19,15 +20,17 @@ import (
 type ImportHandler struct {
 	docs           *repository.DocumentRepository
 	activity       *repository.ActivityRepository
+	cache          *cache.Cache
 	maxImportBytes int64
 }
 
 // NewImportHandler constructs an ImportHandler. maxImportBytes caps each file.
-func NewImportHandler(docs *repository.DocumentRepository, activity *repository.ActivityRepository, maxImportBytes int64) *ImportHandler {
+// cache may be nil.
+func NewImportHandler(docs *repository.DocumentRepository, activity *repository.ActivityRepository, cache *cache.Cache, maxImportBytes int64) *ImportHandler {
 	if maxImportBytes <= 0 {
 		maxImportBytes = 2 << 20
 	}
-	return &ImportHandler{docs: docs, activity: activity, maxImportBytes: maxImportBytes}
+	return &ImportHandler{docs: docs, activity: activity, cache: cache, maxImportBytes: maxImportBytes}
 }
 
 // importResult is one entry in the import response (api.md 4.7).
@@ -98,6 +101,10 @@ func (h *ImportHandler) Import(c *gin.Context) {
 		default:
 			summary["failed"] = summary["failed"].(int) + 1
 		}
+	}
+
+	if created, _ := summary["created"].(int); created > 0 {
+		h.cache.InvalidateDocuments(c.Request.Context())
 	}
 
 	c.JSON(http.StatusOK, gin.H{"data": results, "summary": summary})
