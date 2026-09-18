@@ -11,6 +11,7 @@ import type {
   DocumentNode,
   ErrorDetail,
   Paginated,
+  Profile,
   SearchResult,
   Section,
   Tag,
@@ -210,8 +211,14 @@ export const api = {
           redis_enabled: boolean
           master_password_set: boolean
           private_session_open: boolean
+          profile: Profile
         }
-      }>('/api/settings', { private: true }),
+      }>('/api/settings'),
+    updateProfile: (profile: Profile) =>
+      request<{ data: Profile }>('/api/settings/profile', {
+        method: 'PUT',
+        body: profile,
+      }),
     changeMasterPassword: (currentPassword: string, newPassword: string) =>
       request<void>('/api/settings/master-password', {
         method: 'PUT',

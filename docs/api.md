@@ -360,7 +360,24 @@ Chronological, newest first. Private actions are never recorded or returned.
 
 ## 10. Settings API
 
-- `GET /api/settings` — `{ "data": { "version": "0.1.0", "redis_enabled": false } }`.
+- `GET /api/settings` —
+
+  ```json
+  {
+    "data": {
+      "version": "0.1.0",
+      "redis_enabled": false,
+      "master_password_set": true,
+      "private_session_open": false,
+      "profile": { "first_name": "John", "last_name": "Doe" }
+    }
+  }
+  ```
+
+  `profile` defaults to `John Doe` until changed.
+- `PUT /api/settings/profile` — body:
+  `{ "first_name": "Jane", "last_name": "Roe" }`. Blank names reset the
+  profile to the default `John Doe`. Response `200` with the saved profile.
 - `PUT /api/settings/master-password` — body:
   `{ "current_password": "...", "new_password": "..." }`. Requires a valid
   private session or a correct `current_password`. Response `204`.

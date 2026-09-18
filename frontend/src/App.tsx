@@ -3,6 +3,7 @@ import { Navigate, Outlet, Route, Routes } from 'react-router-dom'
 import { AppLayout } from './components/layout'
 import { ErrorBoundary, MasterPasswordModal, OfflineBanner, Spinner } from './components'
 import { PrivateSessionProvider } from './context/PrivateSessionContext'
+import { ProfileProvider } from './context/ProfileContext'
 import { ToastProvider } from './context/ToastContext'
 import { DashboardPage } from './pages/DashboardPage'
 import { DocumentView } from './pages/DocumentView'
@@ -53,56 +54,58 @@ function ShellRoute() {
 function App() {
   return (
     <ToastProvider>
-      <PrivateSessionProvider>
-        <MasterPasswordModal />
-        <Routes>
-          <Route element={<ShellRoute />}>
-            <Route path={routes.dashboard} element={<DashboardPage />} />
-            <Route path={routes.documents} element={<DocumentsPage />} />
-            <Route path={routes.workflows} element={<DocumentsPage section="workflow" />} />
-            <Route path={routes.knowledgeBase} element={<KnowledgeBasePage />} />
-            <Route path={routes.cheatSheets} element={<DocumentsPage section="cheat_sheet" />} />
-            <Route
-              path={routes.private}
-              element={
-                <Suspense fallback={<RouteFallback />}>
-                  <PrivateArchivePage />
-                </Suspense>
-              }
-            />
-            <Route path={routes.search} element={<SearchPage />} />
-            <Route path={routes.settings} element={<SettingsPage />} />
-            <Route path={`${routes.documents}/:id`} element={<DocumentView />} />
-            <Route
-              path={routes.editor()}
-              element={
-                <Suspense fallback={<RouteFallback />}>
-                  <EditorPage />
-                </Suspense>
-              }
-            />
-            <Route
-              path={`${routes.editor()}/:id`}
-              element={
-                <Suspense fallback={<RouteFallback />}>
-                  <EditorPage />
-                </Suspense>
-              }
-            />
-            {import.meta.env.DEV && (
+      <ProfileProvider>
+        <PrivateSessionProvider>
+          <MasterPasswordModal />
+          <Routes>
+            <Route element={<ShellRoute />}>
+              <Route path={routes.dashboard} element={<DashboardPage />} />
+              <Route path={routes.documents} element={<DocumentsPage />} />
+              <Route path={routes.workflows} element={<DocumentsPage section="workflow" />} />
+              <Route path={routes.knowledgeBase} element={<KnowledgeBasePage />} />
+              <Route path={routes.cheatSheets} element={<DocumentsPage section="cheat_sheet" />} />
               <Route
-                path="/_gallery"
+                path={routes.private}
                 element={
                   <Suspense fallback={<RouteFallback />}>
-                    <Gallery />
+                    <PrivateArchivePage />
                   </Suspense>
                 }
               />
-            )}
-          </Route>
-          <Route path="*" element={<Navigate to={routes.dashboard} replace />} />
-        </Routes>
-      </PrivateSessionProvider>
+              <Route path={routes.search} element={<SearchPage />} />
+              <Route path={routes.settings} element={<SettingsPage />} />
+              <Route path={`${routes.documents}/:id`} element={<DocumentView />} />
+              <Route
+                path={routes.editor()}
+                element={
+                  <Suspense fallback={<RouteFallback />}>
+                    <EditorPage />
+                  </Suspense>
+                }
+              />
+              <Route
+                path={`${routes.editor()}/:id`}
+                element={
+                  <Suspense fallback={<RouteFallback />}>
+                    <EditorPage />
+                  </Suspense>
+                }
+              />
+              {import.meta.env.DEV && (
+                <Route
+                  path="/_gallery"
+                  element={
+                    <Suspense fallback={<RouteFallback />}>
+                      <Gallery />
+                    </Suspense>
+                  }
+                />
+              )}
+            </Route>
+            <Route path="*" element={<Navigate to={routes.dashboard} replace />} />
+          </Routes>
+        </PrivateSessionProvider>
+      </ProfileProvider>
     </ToastProvider>
   )
 }

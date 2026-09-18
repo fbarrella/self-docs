@@ -3,6 +3,7 @@ import { ApiError, api } from '../api/client'
 import type { Tag } from '../api/types'
 import { Button, Card, EmptyState, ErrorState, Input, SectionHeader, Skeleton } from '../components'
 import { usePrivateSession } from '../context/privateSession'
+import { fullNameOf, initialsOf, useProfile } from '../context/profile'
 import { useToast } from '../context/toast'
 import { useAsync } from '../hooks/useAsync'
 
@@ -16,7 +17,11 @@ export function SettingsPage() {
   return (
     <div className="container settings">
       <SectionHeader title="Settings" headingLevel="h1" />
-      <p className="text-secondary">Manage the master password, tags, and app info.</p>
+      <p className="text-secondary">
+        Manage your profile, the master password, tags, and app info.
+      </p>
+
+      <ProfileCard />
 
       <Card className="settings__section">
         <SectionHeader title="Application" headingLevel="h2" />
@@ -53,6 +58,88 @@ export function SettingsPage() {
       <MasterPasswordCard onChanged={() => settings.reload()} />
       <TagsCard />
     </div>
+  )
+}
+
+function ProfileCard() {
+  const { profile, updateProfile } = useProfile()
+  const toast = useToast()
+  const [firstName, setFirstName] = useState(profile.first_name)
+  const [lastName, setLastName] = useState(profile.last_name)
+  const [saving, setSaving] = useState(false)
+  const [message, setMessage] = useState<{ kind: 'error' | 'success'; text: string } | null>(null)
+
+  // Adopt the loaded profile once it arrives (profile loading is async), and
+  // when it changes elsewhere. Compared field-by-field to avoid clobbering
+  // in-progress edits on every render.
+  const [syncedProfile, setSyncedProfile] = useState(profile)
+  if (profile !== syncedProfile) {
+    setSyncedProfile(profile)
+    setFirstName(profile.first_name)
+    setLastName(profile.last_name)
+  }
+
+  async function submit() {
+    setSaving(true)
+    setMessage(null)
+    try {
+      const saved = await updateProfile({ first_name: firstName, last_name: lastName })
+      setFirstName(saved.first_name)
+      setLastName(saved.last_name)
+      setMessage({ kind: 'success', text: 'Profile saved.' })
+      toast.success('Profile saved')
+    } catch (err) {
+      const text = err instanceof ApiError ? err.message : 'Failed to save the profile.'
+      setMessage({ kind: 'error', text })
+      toast.error('Could not save profile', text)
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  return (
+    <Card className="settings__section">
+      <SectionHeader title="Profile" headingLevel="h2" />
+      <p className="text-secondary">
+        Your name is shown in the header. Leave both fields blank to use the default name.
+      </p>
+      <form
+        className="settings__form"
+        onSubmit={(event) => {
+          event.preventDefault()
+          void submit()
+        }}
+      >
+        <Input
+          label="First name"
+          value={firstName}
+          placeholder="John"
+          autoComplete="given-name"
+          onChange={(event) => setFirstName(event.target.value)}
+        />
+        <Input
+          label="Last name"
+          value={lastName}
+          placeholder="Doe"
+          autoComplete="family-name"
+          onChange={(event) => setLastName(event.target.value)}
+        />
+        <p className="settings__label">
+          Preview: <strong>{fullNameOf({ first_name: firstName, last_name: lastName })}</strong> (
+          {initialsOf({ first_name: firstName, last_name: lastName })})
+        </p>
+        {message && (
+          <p className={`settings__message settings__message--${message.kind}`} role="status">
+            {message.text}
+          </p>
+        )}
+        <div className="settings__actions">
+          <Button type="submit" disabled={saving}>
+            {saving ? 'Saving…' : 'Save profile'}
+          </Button>
+        </div>
+      </form>
+    </Card>
   )
 }
 

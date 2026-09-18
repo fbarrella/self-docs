@@ -3,6 +3,7 @@ import { NavLink, useNavigate } from 'react-router-dom'
 import { Avatar, Dropdown } from '../index'
 import type { DropdownItem } from '../Dropdown'
 import { usePrivateSession } from '../../context/privateSession'
+import { fullNameOf, initialsOf, useProfile } from '../../context/profile'
 import { primaryNav } from '../../navigation'
 import { routes } from '../../routes'
 
@@ -56,6 +57,9 @@ export function Header() {
   const [menuOpen, setMenuOpen] = useState(false)
   const navigate = useNavigate()
   const { status, requestUnlock, lock } = usePrivateSession()
+  const { profile } = useProfile()
+  const displayName = fullNameOf(profile)
+  const initials = initialsOf(profile)
 
   function closeMenu() {
     setMenuOpen(false)
@@ -103,8 +107,8 @@ export function Header() {
                 aria-expanded={open}
                 aria-label="User menu"
               >
-                <Avatar initials="AK" size="sm" label="User" />
-                <span className="site-header__user-name">A.K.</span>
+                <Avatar initials={initials} size="sm" label={displayName} />
+                <span className="site-header__user-name">{displayName}</span>
                 <Caret open={open} />
               </button>
             )}

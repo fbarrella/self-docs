@@ -124,6 +124,7 @@ func New(deps Deps) *gin.Engine {
 		api.GET("/activity", activity.List)
 
 		api.GET("/settings", settings.Get)
+		api.PUT("/settings/profile", limitJSON, settings.UpdateProfile)
 		api.PUT("/settings/master-password", limitJSON, settings.ChangeMasterPassword)
 
 		api.POST("/private/unlock", limitJSON, privateHandler.Unlock)

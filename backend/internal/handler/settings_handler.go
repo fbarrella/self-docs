@@ -3,6 +3,7 @@ package handler
 import (
 	"errors"
 	"net/http"
+	"strings"
 
 	"github.com/gin-gonic/gin"
 
@@ -30,12 +31,63 @@ func NewSettingsHandler(
 
 // Get handles GET /api/settings.
 func (h *SettingsHandler) Get(c *gin.Context) {
+	profile, err := h.settings.GetProfile(c.Request.Context())
+	if err != nil {
+		handleRepoError(c, err)
+		return
+	}
 	c.JSON(http.StatusOK, gin.H{
 		"data": gin.H{
 			"version":              h.version,
 			"redis_enabled":        h.redis,
 			"master_password_set":  h.masterPasswordSet(c),
 			"private_session_open": h.privateSessionOpen(c),
+			"profile": gin.H{
+				"first_name": profile.FirstName,
+				"last_name":  profile.LastName,
+			},
+		},
+	})
+}
+
+// profileRequest is the PUT /api/settings/profile body.
+type profileRequest struct {
+	FirstName string `json:"first_name"`
+	LastName  string `json:"last_name"`
+}
+
+// UpdateProfile handles PUT /api/settings/profile. Blank names reset the
+// profile to the default John Doe.
+func (h *SettingsHandler) UpdateProfile(c *gin.Context) {
+	var req profileRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		respondBindError(c, err)
+		return
+	}
+
+	firstName := strings.TrimSpace(req.FirstName)
+	lastName := strings.TrimSpace(req.LastName)
+	if len(firstName) > 100 || len(lastName) > 100 {
+		respondValidation(c, "name is too long",
+			fieldError{Field: "first_name", Issue: "must be at most 100 characters"})
+		return
+	}
+
+	profile := repository.Profile{FirstName: firstName, LastName: lastName}
+	if err := h.settings.SetProfile(c.Request.Context(), profile); err != nil {
+		handleRepoError(c, err)
+		return
+	}
+
+	saved, err := h.settings.GetProfile(c.Request.Context())
+	if err != nil {
+		handleRepoError(c, err)
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{
+		"data": gin.H{
+			"first_name": saved.FirstName,
+			"last_name":  saved.LastName,
 		},
 	})
 }

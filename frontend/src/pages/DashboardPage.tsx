@@ -10,6 +10,7 @@ import {
   ListRow,
   SearchBar,
   SectionHeader,
+  SectionIcon,
   Skeleton,
   TagPill,
 } from '../components'
@@ -79,8 +80,8 @@ export function DashboardPage() {
             const card = data?.cards.find((item) => item.id === section)
             return (
               <Card key={section} interactive>
-                <IconBadge accent={section === 'private'} label={meta.title}>
-                  <span aria-hidden="true">{meta.icon}</span>
+                <IconBadge accent label={meta.title}>
+                  <SectionIcon section={section} />
                 </IconBadge>
                 <h2 className="dashboard-card__title">{meta.title}</h2>
                 <p className="dashboard-card__description">{meta.description}</p>

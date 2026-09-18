@@ -32,6 +32,7 @@ func newSettingsTestServer(t *testing.T) (*gin.Engine, *pgxpool.Pool) {
 	tags := NewTagHandler(repository.NewTagRepository(pool), repository.NewDocumentRepository(pool), nil)
 
 	engine.GET("/api/settings", settings.Get)
+	engine.PUT("/api/settings/profile", settings.UpdateProfile)
 	engine.PUT("/api/settings/master-password", settings.ChangeMasterPassword)
 	engine.DELETE("/api/tags/:name", tags.Delete)
 	return engine, pool
@@ -56,6 +57,71 @@ func TestSettingsGet(t *testing.T) {
 	}
 	if !body.Data.MasterPasswordSet {
 		t.Error("master_password_set should be true")
+	}
+}
+
+func TestSettingsProfileDefaultAndUpdate(t *testing.T) {
+	engine, _ := newSettingsTestServer(t)
+
+	// Default when unset.
+	rec := doJSON(t, engine, http.MethodGet, "/api/settings", nil)
+	body := decodeBody[struct {
+		Data struct {
+			Profile struct {
+				FirstName string `json:"first_name"`
+				LastName  string `json:"last_name"`
+			} `json:"profile"`
+		} `json:"data"`
+	}](t, rec)
+	if body.Data.Profile.FirstName != "John" || body.Data.Profile.LastName != "Doe" {
+		t.Errorf("default profile = %+v, want John Doe", body.Data.Profile)
+	}
+
+	// Update.
+	rec = doJSON(t, engine, http.MethodPut, "/api/settings/profile", map[string]any{
+		"first_name": "Jane",
+		"last_name":  "Roe",
+	})
+	if rec.Code != http.StatusOK {
+		t.Fatalf("update status = %d, want 200 (%s)", rec.Code, rec.Body.String())
+	}
+	updated := decodeBody[struct {
+		Data struct {
+			FirstName string `json:"first_name"`
+			LastName  string `json:"last_name"`
+		} `json:"data"`
+	}](t, rec)
+	if updated.Data.FirstName != "Jane" || updated.Data.LastName != "Roe" {
+		t.Errorf("updated profile = %+v, want Jane Roe", updated.Data)
+	}
+
+	// Persisted.
+	rec = doJSON(t, engine, http.MethodGet, "/api/settings", nil)
+	body = decodeBody[struct {
+		Data struct {
+			Profile struct {
+				FirstName string `json:"first_name"`
+				LastName  string `json:"last_name"`
+			} `json:"profile"`
+		} `json:"data"`
+	}](t, rec)
+	if body.Data.Profile.FirstName != "Jane" {
+		t.Errorf("persisted profile = %+v, want Jane", body.Data.Profile)
+	}
+
+	// Blank resets to the default.
+	rec = doJSON(t, engine, http.MethodPut, "/api/settings/profile", map[string]any{
+		"first_name": "",
+		"last_name":  "",
+	})
+	reset := decodeBody[struct {
+		Data struct {
+			FirstName string `json:"first_name"`
+			LastName  string `json:"last_name"`
+		} `json:"data"`
+	}](t, rec)
+	if reset.Data.FirstName != "John" || reset.Data.LastName != "Doe" {
+		t.Errorf("reset profile = %+v, want John Doe", reset.Data)
 	}
 }
 

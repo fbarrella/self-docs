@@ -24,9 +24,12 @@ services:
       interval: 5s
       timeout: 5s
       retries: 10
-    # Exposed only for local inspection; remove in production.
-    ports:
-      - "${POSTGRES_PORT:-5432}:5432"
+    # The database is reachable to the backend over the internal network, so no
+    # host port is published by default (avoids clashing with a local Postgres).
+    # For direct access use:  docker compose exec db psql -U selfdocs selfdocs
+    # To publish a port anyway, uncomment the lines below and pick a free port:
+    # ports:
+    #   - "127.0.0.1:${POSTGRES_PORT:-5433}:5432"
 
   backend:
     build:

@@ -303,7 +303,7 @@
 
 .ui-icon-badge--accent {
   background-color: var(--color-accent);
-  color: var(--color-accent-text);
+  color: #ffffff;
 }
 
 /* ---- SectionHeader ---- */

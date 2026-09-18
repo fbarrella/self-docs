@@ -90,6 +90,11 @@ export interface Dashboard {
   activity: Activity[]
 }
 
+export interface Profile {
+  first_name: string
+  last_name: string
+}
+
 export interface ErrorDetail {
   code: string
   message: string
