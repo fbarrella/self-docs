@@ -1,6 +1,8 @@
 import { useState } from 'react'
 import { NavLink, useNavigate } from 'react-router-dom'
 import { Avatar, Dropdown } from '../index'
+import type { DropdownItem } from '../Dropdown'
+import { usePrivateSession } from '../../context/privateSession'
 import { primaryNav } from '../../navigation'
 import { routes } from '../../routes'
 
@@ -53,10 +55,18 @@ function Caret({ open }: { open: boolean }) {
 export function Header() {
   const [menuOpen, setMenuOpen] = useState(false)
   const navigate = useNavigate()
+  const { status, requestUnlock, lock } = usePrivateSession()
 
   function closeMenu() {
     setMenuOpen(false)
   }
+
+  const userMenuItems: DropdownItem[] = [
+    { label: 'Global settings', onSelect: () => navigate(routes.settings) },
+    status === 'unlocked'
+      ? { label: 'Lock Private Archive', onSelect: () => void lock() }
+      : { label: 'Unlock Private Archive', onSelect: requestUnlock },
+  ]
 
   return (
     <header className="site-header">
@@ -83,7 +93,7 @@ export function Header() {
 
         <div className="site-header__user">
           <Dropdown
-            items={[{ label: 'Global settings', onSelect: () => navigate(routes.settings) }]}
+            items={userMenuItems}
             trigger={({ open, toggle }) => (
               <button
                 type="button"

@@ -39,6 +39,9 @@ export class ApiError extends Error {
   }
 }
 
+// Imported lazily to avoid a module cycle at load time.
+import { clearPrivateToken, getPrivateToken } from './privateToken'
+
 type QueryValue = string | number | boolean | undefined | null
 
 function buildQuery(params: Record<string, QueryValue | QueryValue[]>): string {
@@ -63,23 +66,34 @@ interface RequestOptions {
   method?: string
   body?: unknown
   signal?: AbortSignal
+  /** Attach the private session bearer token when available. */
+  private?: boolean
 }
 
 async function request<T>(path: string, options: RequestOptions = {}): Promise<T> {
-  const { method = 'GET', body, signal } = options
+  const { method = 'GET', body, signal, private: isPrivate } = options
 
   const isFormData = body instanceof FormData
   const requestBody = isFormData ? body : body !== undefined ? JSON.stringify(body) : undefined
-  const headers =
-    body !== undefined && !isFormData ? { 'Content-Type': 'application/json' } : undefined
+
+  const headers: Record<string, string> = {}
+  if (body !== undefined && !isFormData) headers['Content-Type'] = 'application/json'
+  if (isPrivate) {
+    const token = getPrivateToken()
+    if (token) headers.Authorization = `Bearer ${token}`
+  }
 
   const response = await fetch(`${API_BASE_URL}${path}`, {
     method,
     credentials: 'include',
-    headers,
+    headers: Object.keys(headers).length > 0 ? headers : undefined,
     body: requestBody,
     signal,
   })
+
+  if (response.status === 401 && isPrivate) {
+    clearPrivateToken()
+  }
 
   if (response.status === 204) {
     return undefined as T
@@ -200,17 +214,21 @@ export const api = {
         method: 'POST',
         body: { password },
       }),
-    lock: () => request<void>('/api/private/lock', { method: 'POST' }),
+    lock: () => request<void>('/api/private/lock', { method: 'POST', private: true }),
     list: (params: { include?: 'content'; page?: number; page_size?: number } = {}) =>
-      request<Paginated<Document>>(`/api/private/documents${buildQuery({ ...params })}`),
-    get: (id: string) => request<Document>(`/api/private/documents/${id}`),
+      request<Paginated<Document>>(`/api/private/documents${buildQuery({ ...params })}`, {
+        private: true,
+      }),
+    get: (id: string) => request<Document>(`/api/private/documents/${id}`, { private: true }),
     create: (payload: CreateDocumentPayload) =>
-      request<Document>('/api/private/documents', { method: 'POST', body: payload }),
+      request<Document>('/api/private/documents', { method: 'POST', body: payload, private: true }),
     update: (id: string, payload: UpdateDocumentPayload) =>
       request<Document>(`/api/private/documents/${id}`, {
         method: 'PUT',
         body: payload,
+        private: true,
       }),
-    remove: (id: string) => request<void>(`/api/private/documents/${id}`, { method: 'DELETE' }),
+    remove: (id: string) =>
+      request<void>(`/api/private/documents/${id}`, { method: 'DELETE', private: true }),
   },
 }

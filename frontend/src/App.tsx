@@ -1,7 +1,8 @@
 import { Suspense, lazy } from 'react'
 import { Navigate, Outlet, Route, Routes } from 'react-router-dom'
 import { AppLayout } from './components/layout'
-import { Spinner } from './components'
+import { MasterPasswordModal, Spinner } from './components'
+import { PrivateSessionProvider } from './context/PrivateSessionContext'
 import { DashboardPage } from './pages/DashboardPage'
 import { DocumentView } from './pages/DocumentView'
 import { DocumentsPage } from './pages/DocumentsPage'
@@ -10,9 +11,12 @@ import { PlaceholderPage } from './pages/PlaceholderPage'
 import { SearchPage } from './pages/SearchPage'
 import { routes } from './routes'
 
-// The Markdown editor is heavy, so it loads on demand.
+// The Markdown editor is heavy, so these editor-bearing routes load on demand.
 const EditorPage = lazy(() =>
   import('./pages/EditorPage').then((module) => ({ default: module.EditorPage })),
+)
+const PrivateArchivePage = lazy(() =>
+  import('./pages/PrivateArchivePage').then((module) => ({ default: module.PrivateArchivePage })),
 )
 const Gallery = lazy(() =>
   import('./pages/Gallery').then((module) => ({ default: module.Gallery })),
@@ -44,49 +48,53 @@ function ShellRoute() {
  */
 function App() {
   return (
-    <Routes>
-      <Route element={<ShellRoute />}>
-        <Route path={routes.dashboard} element={<DashboardPage />} />
-        <Route path={routes.documents} element={<DocumentsPage />} />
-        <Route path={routes.workflows} element={<DocumentsPage section="workflow" />} />
-        <Route path={routes.knowledgeBase} element={<KnowledgeBasePage />} />
-        <Route path={routes.cheatSheets} element={<DocumentsPage section="cheat_sheet" />} />
-        <Route
-          path={routes.private}
-          element={
-            <PlaceholderPage
-              title="Private Archive"
-              description="Master-password protected notes."
-            />
-          }
-        />
-        <Route path={routes.search} element={<SearchPage />} />
-        <Route
-          path={routes.settings}
-          element={<PlaceholderPage title="Settings" description="Global application settings." />}
-        />
-        <Route path={`${routes.documents}/:id`} element={<DocumentView />} />
-        <Route
-          path={`${routes.editor}/:id?`}
-          element={
-            <Suspense fallback={<RouteFallback />}>
-              <EditorPage />
-            </Suspense>
-          }
-        />
-        {import.meta.env.DEV && (
+    <PrivateSessionProvider>
+      <MasterPasswordModal />
+      <Routes>
+        <Route element={<ShellRoute />}>
+          <Route path={routes.dashboard} element={<DashboardPage />} />
+          <Route path={routes.documents} element={<DocumentsPage />} />
+          <Route path={routes.workflows} element={<DocumentsPage section="workflow" />} />
+          <Route path={routes.knowledgeBase} element={<KnowledgeBasePage />} />
+          <Route path={routes.cheatSheets} element={<DocumentsPage section="cheat_sheet" />} />
           <Route
-            path="/_gallery"
+            path={routes.private}
             element={
               <Suspense fallback={<RouteFallback />}>
-                <Gallery />
+                <PrivateArchivePage />
               </Suspense>
             }
           />
-        )}
-      </Route>
-      <Route path="*" element={<Navigate to={routes.dashboard} replace />} />
-    </Routes>
+          <Route path={routes.search} element={<SearchPage />} />
+          <Route
+            path={routes.settings}
+            element={
+              <PlaceholderPage title="Settings" description="Global application settings." />
+            }
+          />
+          <Route path={`${routes.documents}/:id`} element={<DocumentView />} />
+          <Route
+            path={`${routes.editor}/:id?`}
+            element={
+              <Suspense fallback={<RouteFallback />}>
+                <EditorPage />
+              </Suspense>
+            }
+          />
+          {import.meta.env.DEV && (
+            <Route
+              path="/_gallery"
+              element={
+                <Suspense fallback={<RouteFallback />}>
+                  <Gallery />
+                </Suspense>
+              }
+            />
+          )}
+        </Route>
+        <Route path="*" element={<Navigate to={routes.dashboard} replace />} />
+      </Routes>
+    </PrivateSessionProvider>
   )
 }
 

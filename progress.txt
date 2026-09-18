@@ -572,3 +572,33 @@ Verification: `npm run lint` (0 warnings), `npx tsc -b --noEmit`,
              that a private-only term returns 0 public results while the public
              document still matches.
 Next       : T4.7 - Private Archive UI and master-password modal
+
+--------------------------------------------------------------------------------
+[2026-09-18T00:04:36Z] TASK T4.7 - Private Archive UI and master-password modal
+--------------------------------------------------------------------------------
+Phase      : 4 - Frontend Features
+Status     : DONE
+Summary    : Implemented the Private Archive experience (PRD 3.2): a
+             PrivateSessionProvider tracking locked/unlocked state with
+             sessionStorage-backed bearer tokens (401 auto-clears), a global
+             master-password modal with wrong-password and rate-limit feedback,
+             and a /private page that prompts on entry when locked. Once
+             unlocked it offers a note list, viewer, and create/edit/delete with
+             the Markdown editor. The header avatar menu gained lock/unlock
+             actions. The private route is lazy-loaded so the editor chunk stays
+             out of the main bundle.
+Files      : frontend/src/context/{privateSession.ts,PrivateSessionContext.tsx},
+             frontend/src/api/{privateToken.ts,client.ts},
+             frontend/src/components/MasterPasswordModal.tsx,
+             frontend/src/components/{index.ts,layout/Header.tsx},
+             frontend/src/pages/PrivateArchivePage.tsx,
+             frontend/src/styles/private.css, frontend/src/index.css,
+             frontend/src/App.tsx
+Verification: `npm run lint` (0 warnings), `npx tsc -b --noEmit`,
+             `npm run format:check`, and `npm run build` succeed (main ~237 kB;
+             editor split into a shared markdown-editor chunk). Against the
+             real backend (disposable postgres:16-alpine) verified the full
+             lifecycle: locked GET 401, wrong password 401, unlock -> private
+             create 201 -> list shows the note -> lock 204 -> subsequent GET
+             401.
+Next       : T4.8 - Settings page
