@@ -205,6 +205,7 @@ function EditorForm({ initial }: { initial?: Document }) {
           <Card>
             <p className="editor__panel-title">Tags</p>
             <Input
+              label="Tags"
               value={tagInput}
               onChange={(event) => setTagInput(event.target.value)}
               onKeyDown={(event) => {

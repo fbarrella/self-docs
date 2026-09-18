@@ -57,6 +57,39 @@ func TestSecurityHeaders(t *testing.T) {
 	}
 }
 
+func TestNormalizeSameOriginOrigin(t *testing.T) {
+	engine := newEngine(NormalizeSameOriginOrigin())
+	engine.POST("/x", func(c *gin.Context) {
+		c.String(http.StatusOK, "%s", c.GetHeader("Origin"))
+	})
+
+	tests := []struct {
+		name   string
+		host   string
+		origin string
+		want   string
+	}{
+		{"same host stripped", "localhost:8080", "http://localhost:8080", ""},
+		{"same host https stripped", "localhost:8080", "https://localhost:8080", ""},
+		{"cross origin kept", "localhost:8080", "http://localhost:5173", "http://localhost:5173"},
+		{"no origin", "localhost:8080", "", ""},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			req := httptest.NewRequest(http.MethodPost, "/x", nil)
+			req.Host = tt.host
+			if tt.origin != "" {
+				req.Header.Set("Origin", tt.origin)
+			}
+			rec := httptest.NewRecorder()
+			engine.ServeHTTP(rec, req)
+			if got := rec.Body.String(); got != tt.want {
+				t.Errorf("Origin = %q, want %q", got, tt.want)
+			}
+		})
+	}
+}
+
 func TestMaxBodyBytesRejects(t *testing.T) {
 	engine := newEngine(MaxBodyBytes(8))
 	engine.POST("/x", func(c *gin.Context) {

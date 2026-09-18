@@ -818,3 +818,69 @@ Verification: `gofmt`, `go vet`, `golangci-lint run` (0 issues), and full
              remained in the database, while deleting a public tag still
              returned 204.
 Next       : T6.3 - End-to-end smoke tests
+
+--------------------------------------------------------------------------------
+[2026-09-18T04:00:02Z] TASK T6.3 - End-to-end smoke tests
+--------------------------------------------------------------------------------
+Phase      : 6 - Quality, Security & Documentation
+Status     : DONE
+Summary    : Added a Playwright E2E suite (9 tests) covering the dashboard,
+             create/view/edit/delete authoring, tag filtering, global search
+             (hit/zero/pre-query states), Markdown import with front-matter,
+             and the full private archive unlock flow (locked prompt, wrong
+             password, unlock, private create, public-search exclusion, lock).
+             Added playwright.config.ts, an e2e tsconfig, npm scripts, and
+             README docs. Writing the suite surfaced and fixed two real bugs:
+             (1) the /editor route used React Router v6's optional-param syntax
+             (:id?) which v7 rejects, so /editor silently redirected home --
+             split into /editor and /editor/:id; (2) same-origin POSTs through
+             the nginx proxy sent an Origin header that CORS rejected (403),
+             which broke imports -- added NormalizeSameOriginOrigin middleware
+             to drop same-host Origin headers before CORS and forwarded the full
+             Host ($http_host) in nginx. Also added a label to the editor tag
+             input.
+Files      : frontend/playwright.config.ts, frontend/tsconfig.e2e.json,
+             frontend/tsconfig.json, frontend/package.json,
+             frontend/e2e/{helpers,dashboard,authoring,search,private,
+             import}.spec.ts, frontend/src/App.tsx,
+             frontend/src/pages/EditorPage.tsx,
+             backend/internal/middleware/{middleware.go,middleware_test.go},
+             backend/internal/router/router.go, frontend/nginx.conf,
+             frontend/{.gitignore,.prettierignore}, README.md
+Verification: `docker compose up --build` then `BASE_URL=... npm run test:e2e`
+             against the live stack: 9 passed. Backend `gofmt`/`go vet`/
+             `golangci-lint` (0 issues) and full `go test ./...` pass, including
+             the new same-origin middleware test. Frontend lint/tsc/format/
+             build all pass. Stack torn down with `docker compose down -v`.
+Next       : T6.4 - Documentation and seed content
+
+--------------------------------------------------------------------------------
+[2026-09-18T05:23:31Z] TASK T6.4 - Documentation and seed content
+--------------------------------------------------------------------------------
+Phase      : 6 - Quality, Security & Documentation
+Status     : DONE
+Summary    : Added a seed command (backend/cmd/seed) that loads sample content
+             from embedded Markdown files with YAML front-matter: a Welcome
+             guide and Markdown guide (workflows), Git and Docker cheat sheets,
+             and a nested Frontend Project Note with Routing and State children.
+             It is idempotent (skips existing slug+section/parent), applies
+             migrations first so it works on a fresh database, and is shipped
+             as /usr/local/bin/seed in the backend image for
+             `docker compose exec backend /usr/local/bin/seed`. Rewrote the
+             README into a complete guide: features, layout, quick start, seed,
+             Redis, configuration table, local development, tooling/tests,
+             backup/restore, and troubleshooting.
+Files      : backend/cmd/seed/main.go, backend/cmd/seed/content/*.md,
+             backend/Dockerfile, README.md
+Verification: Ran the seed against a fresh disposable postgres:16-alpine: 7
+             documents created, a second run reported 0 created / 7 skipped
+             (idempotent), and psql confirmed section counts, the
+             Frontend -> Routing/State hierarchy, and the tag set. The running
+             API then served the seeded data (dashboard card counts 2/3/2,
+             popular tags, project-note tree, and a content search for
+             "rebase" hitting the Git cheat sheet). Ran the seed through the
+             built backend image via `docker exec ... /usr/local/bin/seed`,
+             matching the documented command. Backend gofmt/vet/golangci-lint
+             (0 issues) and full go test ./... pass; frontend lint/tsc/format/
+             build pass.
+Next       : All planned tasks (T0.0 through T6.4) are complete. Awaiting user instruction.

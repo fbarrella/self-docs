@@ -74,7 +74,15 @@ function App() {
             <Route path={routes.settings} element={<SettingsPage />} />
             <Route path={`${routes.documents}/:id`} element={<DocumentView />} />
             <Route
-              path={`${routes.editor}/:id?`}
+              path={routes.editor()}
+              element={
+                <Suspense fallback={<RouteFallback />}>
+                  <EditorPage />
+                </Suspense>
+              }
+            />
+            <Route
+              path={`${routes.editor()}/:id`}
               element={
                 <Suspense fallback={<RouteFallback />}>
                   <EditorPage />

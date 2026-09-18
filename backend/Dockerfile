@@ -11,9 +11,10 @@ RUN go mod download
 
 COPY . .
 
-# Build a static binary so the runtime image can be minimal.
+# Build static binaries so the runtime image can be minimal.
 ENV CGO_ENABLED=0 GOOS=linux
-RUN go build -trimpath -ldflags="-s -w" -o /out/server ./cmd/server
+RUN go build -trimpath -ldflags="-s -w" -o /out/server ./cmd/server \
+    && go build -trimpath -ldflags="-s -w" -o /out/seed ./cmd/seed
 
 # ---- Runtime stage ----
 FROM alpine:3.22
@@ -24,6 +25,7 @@ RUN apk add --no-cache ca-certificates \
     && adduser -S -G app app
 
 COPY --from=build /out/server /usr/local/bin/server
+COPY --from=build /out/seed /usr/local/bin/seed
 
 USER app
 EXPOSE 8080

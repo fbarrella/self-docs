@@ -54,6 +54,9 @@ func New(deps Deps) *gin.Engine {
 		_ = engine.SetTrustedProxies(nil)
 	}
 	engine.Use(middleware.RequestID(), middleware.Logger(), gin.Recovery(), middleware.SecurityHeaders())
+	// Strip same-origin Origin headers before CORS so proxied same-origin POSTs
+	// are not rejected.
+	engine.Use(middleware.NormalizeSameOriginOrigin())
 	engine.Use(cors.New(cors.Config{
 		AllowOrigins:     origins,
 		AllowMethods:     []string{"GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"},
