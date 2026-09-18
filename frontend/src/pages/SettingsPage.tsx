@@ -1,8 +1,9 @@
 import { useState } from 'react'
 import { ApiError, api } from '../api/client'
 import type { Tag } from '../api/types'
-import { Button, Card, EmptyState, Input, SectionHeader, Skeleton } from '../components'
+import { Button, Card, EmptyState, ErrorState, Input, SectionHeader, Skeleton } from '../components'
 import { usePrivateSession } from '../context/privateSession'
+import { useToast } from '../context/toast'
 import { useAsync } from '../hooks/useAsync'
 
 /**
@@ -22,9 +23,11 @@ export function SettingsPage() {
         {settings.loading && !settings.data ? (
           <Skeleton height={72} />
         ) : settings.error ? (
-          <p className="settings__message settings__message--error">
-            Could not load settings. {settings.error.message}
-          </p>
+          <ErrorState
+            title="Could not load settings"
+            message={settings.error.message}
+            onRetry={settings.reload}
+          />
         ) : (
           <>
             <div className="settings__row">
@@ -55,6 +58,7 @@ export function SettingsPage() {
 
 function MasterPasswordCard({ onChanged }: { onChanged: () => void }) {
   const { status, requestUnlock } = usePrivateSession()
+  const toast = useToast()
   const [current, setCurrent] = useState('')
   const [next, setNext] = useState('')
   const [confirm, setConfirm] = useState('')
@@ -81,6 +85,7 @@ function MasterPasswordCard({ onChanged }: { onChanged: () => void }) {
         kind: 'success',
         text: 'Master password changed. Existing private sessions were locked.',
       })
+      toast.success('Master password changed')
       onChanged()
     } catch (err) {
       if (err instanceof ApiError && err.status === 401) {
@@ -157,6 +162,7 @@ function TagsCard() {
     () => api.tags.list({ sort: 'count', order: 'desc', page_size: 100 }),
     [],
   )
+  const toast = useToast()
   const [message, setMessage] = useState<string | null>(null)
 
   async function remove(name: string) {
@@ -164,9 +170,12 @@ function TagsCard() {
     try {
       await api.tags.remove(name)
       setMessage(`Deleted "${name}".`)
+      toast.success('Tag deleted', name)
       tags.reload()
     } catch (err) {
-      setMessage(err instanceof ApiError ? err.message : 'Failed to delete the tag.')
+      const text = err instanceof ApiError ? err.message : 'Failed to delete the tag.'
+      setMessage(text)
+      toast.error('Could not delete tag', text)
     }
   }
 

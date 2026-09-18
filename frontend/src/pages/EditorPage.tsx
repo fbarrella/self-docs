@@ -4,7 +4,8 @@ import '@uiw/react-md-editor/markdown-editor.css'
 import { useNavigate, useParams } from 'react-router-dom'
 import { ApiError, api } from '../api/client'
 import type { Document, Section } from '../api/types'
-import { Button, Card, Input, Spinner, TagPill } from '../components'
+import { Button, Card, ErrorState, Input, Spinner, TagPill } from '../components'
+import { useToast } from '../context/toast'
 import { useAsync } from '../hooks/useAsync'
 import { routes } from '../routes'
 import { sectionMeta } from '../sectionMeta'
@@ -57,17 +58,16 @@ function EditorLoader({ id }: { id: string }) {
   if (error || !data) {
     return (
       <div className="container editor">
-        <div className="dashboard-error" role="alert">
-          <span>{error instanceof ApiError ? error.message : 'Failed to load the document.'}</span>
-          <div className="row">
-            <Button variant="secondary" size="sm" onClick={reload}>
-              Retry
-            </Button>
-            <Button variant="ghost" size="sm" onClick={() => navigate(routes.documents)}>
+        <ErrorState
+          title="Could not load the document"
+          message={error instanceof ApiError ? error.message : 'Please try again.'}
+          onRetry={reload}
+          action={
+            <Button variant="ghost" onClick={() => navigate(routes.documents)}>
               Back to documents
             </Button>
-          </div>
-        </div>
+          }
+        />
       </div>
     )
   }
@@ -77,6 +77,7 @@ function EditorLoader({ id }: { id: string }) {
 
 function EditorForm({ initial }: { initial?: Document }) {
   const navigate = useNavigate()
+  const toast = useToast()
   const isEditing = Boolean(initial)
 
   const [title, setTitle] = useState(initial?.title ?? '')
@@ -121,17 +122,16 @@ function EditorForm({ initial }: { initial?: Document }) {
         isEditing && initial
           ? await api.documents.update(initial.id, payload)
           : await api.documents.create(payload)
-      setStatus({ kind: 'success', message: 'Saved.' })
+      toast.success(isEditing ? 'Document saved' : 'Document created', doc.title)
       if (!isEditing) navigate(routes.document(doc.id), { replace: true })
     } catch (err) {
-      setStatus({
-        kind: 'error',
-        message: err instanceof ApiError ? err.message : 'Failed to save the document.',
-      })
+      const message = err instanceof ApiError ? err.message : 'Failed to save the document.'
+      setStatus({ kind: 'error', message })
+      toast.error('Save failed', message)
     } finally {
       setSaving(false)
     }
-  }, [title, content, section, tags, isEditing, initial, navigate])
+  }, [title, content, section, tags, isEditing, initial, navigate, toast])
 
   const remove = useCallback(async () => {
     if (!initial) return
@@ -140,15 +140,15 @@ function EditorForm({ initial }: { initial?: Document }) {
     setStatus(null)
     try {
       await api.documents.remove(initial.id)
+      toast.success('Document deleted', initial.title)
       navigate(routes.documents, { replace: true })
     } catch (err) {
-      setStatus({
-        kind: 'error',
-        message: err instanceof ApiError ? err.message : 'Failed to delete the document.',
-      })
+      const message = err instanceof ApiError ? err.message : 'Failed to delete the document.'
+      setStatus({ kind: 'error', message })
+      toast.error('Delete failed', message)
       setDeleting(false)
     }
-  }, [initial, navigate])
+  }, [initial, navigate, toast])
 
   return (
     <div className="container editor">

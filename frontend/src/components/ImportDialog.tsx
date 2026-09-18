@@ -4,6 +4,7 @@ import { ApiError, api } from '../api/client'
 import type { ImportResponse } from '../api/client'
 import type { Section } from '../api/types'
 import { Button, Input, Modal } from '.'
+import { useToast } from '../context/toast'
 import { sectionMeta } from '../sectionMeta'
 import { routes } from '../routes'
 import { useNavigate } from 'react-router-dom'
@@ -35,6 +36,7 @@ export function ImportDialog({
   defaultSection = 'workflow',
 }: ImportDialogProps) {
   const navigate = useNavigate()
+  const toast = useToast()
   const inputRef = useRef<HTMLInputElement>(null)
 
   const [files, setFiles] = useState<File[]>([])
@@ -106,9 +108,19 @@ export function ImportDialog({
       if (tags.trim()) form.append('tags', tags.trim())
       const response = await api.documents.import(form)
       setResult(response)
-      if (response.summary.created > 0) onImported?.()
+      if (response.summary.created > 0) {
+        toast.success(
+          `Imported ${response.summary.created} file${response.summary.created === 1 ? '' : 's'}`,
+          response.summary.skipped > 0 ? `${response.summary.skipped} skipped` : undefined,
+        )
+        onImported?.()
+      } else {
+        toast.info('Nothing imported', 'No valid .md files were found.')
+      }
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : 'Import failed.')
+      const message = err instanceof ApiError ? err.message : 'Import failed.'
+      setError(message)
+      toast.error('Import failed', message)
     } finally {
       setUploading(false)
     }

@@ -635,3 +635,29 @@ Verification: `gofmt`, `go vet`, `golangci-lint run` (0 issues), and `go test
              (401), the new password unlocked (200), and the old password was
              rejected (401).
 Next       : T4.9 - State management, API error handling, UX polish
+
+--------------------------------------------------------------------------------
+[2026-09-18T00:17:18Z] TASK T4.9 - State management, API error handling, UX polish
+--------------------------------------------------------------------------------
+Phase      : 4 - Frontend Features
+Status     : DONE
+Summary    : Added cross-cutting UX infrastructure: a ToastProvider with
+             auto-dismissing success/error/info notifications wired into
+             editor save/delete, import, and settings actions; a route-level
+             ErrorBoundary with a recoverable fallback; a reusable ErrorState
+             component now used by the editor and settings pages; and an
+             OfflineBanner that polls /healthz and warns when the backend is
+             unreachable. Providers wrap the app in App.tsx and the boundary,
+             offline banner, and toasts cover every route.
+Files      : frontend/src/context/{toast.ts,ToastContext.tsx},
+             frontend/src/components/{ErrorBoundary,ErrorState,OfflineBanner}.tsx,
+             frontend/src/components/{index.ts,ImportDialog.tsx},
+             frontend/src/pages/{EditorPage,SettingsPage}.tsx,
+             frontend/src/styles/feedback.css, frontend/src/index.css,
+             frontend/src/App.tsx
+Verification: `npm run lint` (0 warnings), `npx tsc -b --noEmit`,
+             `npm run format:check`, and `npm run build` succeed. Dev server
+             serves the app and transforms the new providers/boundary; with no
+             backend running the /healthz probe fails as expected, which drives
+             the OfflineBanner instead of blank screens.
+Next       : T5.1 - Backend Dockerfile
