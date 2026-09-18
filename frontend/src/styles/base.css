@@ -21,6 +21,8 @@ body {
   font-family: var(--font-sans);
   font-size: var(--font-size-base);
   line-height: var(--line-height-normal);
+  /* Prevent wide content (tables, code, editors) from scrolling the page. */
+  overflow-x: hidden;
 }
 
 #root {

@@ -202,7 +202,7 @@
 }
 
 .site-footer__links a {
-  color: var(--color-accent-hover);
+  color: var(--color-accent-strong);
   font-size: var(--font-size-sm);
   font-weight: var(--font-weight-medium);
 }

@@ -757,3 +757,64 @@ Verification: `gofmt`, `go vet`, `golangci-lint run` (0 issues), and `go test
              unlock. With REDIS_URL pointed at a dead port the server logged a
              warning, started, and served dashboard/popular/create normally.
 Next       : T6.1 - Responsive and accessibility audit
+
+--------------------------------------------------------------------------------
+[2026-09-18T01:53:56Z] TASK T6.1 - Responsive and accessibility audit
+--------------------------------------------------------------------------------
+Phase      : 6 - Quality, Security & Documentation
+Status     : DONE
+Summary    : Audited and fixed responsive and accessibility issues. Fixed
+             invalid interactive nesting by adding a ButtonLink component and
+             replacing every <Link><Button> pair (dashboard cards, listing
+             actions). Raised contrast: added a darker --color-accent-strong for
+             links on light surfaces (markdown, footer) and darkened the
+             success/warning/danger tokens. Made Button default to type="button"
+             to avoid accidental form submits, gave Modal a unique aria title id
+             via useId, turned the toast region into an aria-live polite region,
+             prevented page-level horizontal overflow, and made wide markdown
+             tables scroll within their container. Confirmed existing coverage:
+             breakpoints for cards (4/2/1), stacked lower area, hamburger nav,
+             footer (3/2/1), skip link, focus-visible ring, labelled icon
+             buttons, and reduced-motion support.
+Files      : frontend/src/components/{Button.tsx,index.ts,Modal.tsx},
+             frontend/src/pages/{DashboardPage,DocumentsPage,Gallery}.tsx,
+             frontend/src/context/ToastContext.tsx,
+             frontend/src/styles/{theme.css,base.css,viewer.css,layout.css}
+Verification: `npm run lint` (0 warnings), `npx tsc -b --noEmit`,
+             `npm run format:check`, and `npm run build` succeed. Grep audit
+             confirmed no <img> without alt, no positive tabindex, icon-only
+             buttons all labelled, and every form with an explicit submit
+             button. Dev server served the app and /_gallery with the new
+             accent-strong token and ButtonLink export present.
+Next       : T6.2 - Security review of the private vault
+
+--------------------------------------------------------------------------------
+[2026-09-18T03:39:08Z] TASK T6.2 - Security review of the private vault
+--------------------------------------------------------------------------------
+Phase      : 6 - Quality, Security & Documentation
+Status     : DONE
+Summary    : Reviewed the Private Archive end to end and wrote
+             docs/security-review.md (password handling, sessions, rate limiting,
+             a per-endpoint isolation leak audit, request hardening, residual
+             risks, and a checklist). Found and fixed a real leak: DELETE
+             /api/tags/:name could target a tag attached only to private
+             documents, both revealing its existence (204 vs 404) and deleting
+             it. It now requires GetVisibleByNormalized first (private-only ->
+             404, not deleted) and invalidates the tag cache. Also hardened the
+             unlock rate-limit key by making trusted proxies explicit
+             (TRUSTED_PROXIES; none trusted by default, so X-Forwarded-For is
+             ignored) and corrected the private import error message.
+Files      : docs/security-review.md, README.md,
+             backend/internal/handler/tag_handler.go,
+             backend/internal/handler/tag_handler_test.go,
+             backend/internal/handler/import_handler.go,
+             backend/internal/config/config.go,
+             backend/internal/router/router.go, backend/cmd/server/main.go
+Verification: `gofmt`, `go vet`, `golangci-lint run` (0 issues), and full
+             `go test ./...` pass against disposable postgres:16-alpine, with a
+             new regression test asserting private-only tag deletion returns 404
+             and leaves the tag intact. Live reproduction before the fix showed
+             204; after rebuilding, the same request returned 404 and the tag
+             remained in the database, while deleting a public tag still
+             returned 204.
+Next       : T6.3 - End-to-end smoke tests

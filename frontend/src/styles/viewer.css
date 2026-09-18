@@ -24,7 +24,7 @@
 }
 
 .markdown-body a {
-  color: var(--color-accent-hover);
+  color: var(--color-accent-strong);
   text-decoration: underline;
 }
 
@@ -65,7 +65,10 @@
 }
 
 .markdown-body table {
+  display: block;
   width: 100%;
+  max-width: 100%;
+  overflow-x: auto;
   border-collapse: collapse;
   margin-bottom: var(--space-4);
 }

@@ -30,6 +30,9 @@ type Deps struct {
 	SecureCookies bool
 	// Cache is the optional Redis cache. A nil or disabled cache is a no-op.
 	Cache *cache.Cache
+	// TrustedProxies lists CIDRs whose forwarded headers are honored. When
+	// empty, no proxies are trusted and ClientIP uses the socket address.
+	TrustedProxies []string
 }
 
 // New builds the Gin engine with middleware and all registered routes.
@@ -40,6 +43,16 @@ func New(deps Deps) *gin.Engine {
 	}
 
 	engine := gin.New()
+	// Only trust X-Forwarded-For from configured proxies; otherwise ClientIP is
+	// the socket address, preventing spoofed rate-limit keys.
+	if len(deps.TrustedProxies) > 0 {
+		if err := engine.SetTrustedProxies(deps.TrustedProxies); err != nil {
+			// Invalid CIDRs fall back to the safe default (no proxies trusted).
+			_ = engine.SetTrustedProxies(nil)
+		}
+	} else {
+		_ = engine.SetTrustedProxies(nil)
+	}
 	engine.Use(middleware.RequestID(), middleware.Logger(), gin.Recovery(), middleware.SecurityHeaders())
 	engine.Use(cors.New(cors.Config{
 		AllowOrigins:     origins,

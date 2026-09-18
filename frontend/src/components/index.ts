@@ -1,5 +1,5 @@
 export { Avatar } from './Avatar'
-export { Button } from './Button'
+export { Button, ButtonLink } from './Button'
 export { Card } from './Card'
 export { DocumentCard } from './DocumentCard'
 export { Dropdown } from './Dropdown'

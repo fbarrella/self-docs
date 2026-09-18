@@ -1,9 +1,10 @@
 import { useCallback } from 'react'
-import { Link, useSearchParams } from 'react-router-dom'
+import { useSearchParams } from 'react-router-dom'
 import { api } from '../api/client'
 import type { Document, Paginated, Section, Tag } from '../api/types'
 import {
   Button,
+  ButtonLink,
   DocumentCard,
   EmptyState,
   ImportDialog,
@@ -100,9 +101,9 @@ export function DocumentsPage({ section, title, description }: DocumentsPageProp
 
       <div className="doc-toolbar">
         <div className="doc-filters">
-          <Link to={routes.editor()}>
-            <Button size="sm">New document</Button>
-          </Link>
+          <ButtonLink to={routes.editor()} size="sm">
+            New document
+          </ButtonLink>
           <Button size="sm" variant="secondary" onClick={() => setImportOpen(true)}>
             Import
           </Button>
@@ -216,11 +217,7 @@ export function DocumentsPage({ section, title, description }: DocumentsPageProp
                 ? 'Try clearing the filters or using a different search.'
                 : 'Create your first document to get started.'
             }
-            action={
-              <Link to={routes.editor()}>
-                <Button>New document</Button>
-              </Link>
-            }
+            action={<ButtonLink to={routes.editor()}>New document</ButtonLink>}
           />
         )}
       </div>

@@ -35,6 +35,10 @@ type Config struct {
 	ShutdownTimeout time.Duration
 	// MaxImportBytes caps a single imported file. Defaults to 2 MiB.
 	MaxImportBytes int64
+	// TrustedProxies lists CIDRs whose X-Forwarded-For is honored. Empty means
+	// no proxies are trusted, so the client IP is taken from the socket. This
+	// prevents spoofing the unlock rate-limit key.
+	TrustedProxies []string
 }
 
 const (
@@ -61,6 +65,7 @@ func Load() (*Config, error) {
 		WriteTimeout:       defaultWriteTimeout,
 		ShutdownTimeout:    defaultShutdownTimeout,
 		MaxImportBytes:     defaultMaxImportBytes,
+		TrustedProxies:     splitAndTrim(os.Getenv("TRUSTED_PROXIES")),
 	}
 
 	var missing []string

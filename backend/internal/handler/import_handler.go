@@ -57,8 +57,9 @@ func (h *ImportHandler) Import(c *gin.Context) {
 		return
 	}
 	if section.IsPrivate() {
+		// Private content must never be imported through a public route.
 		respondError(c, http.StatusForbidden, CodeForbidden,
-			"use /api/private/documents/import to import private documents")
+			"private documents cannot be imported through this endpoint")
 		return
 	}
 

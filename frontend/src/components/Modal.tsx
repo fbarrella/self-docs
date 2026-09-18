@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react'
+import { useEffect, useId, useRef } from 'react'
 import type { ReactNode } from 'react'
 
 export interface ModalProps {
@@ -24,6 +24,7 @@ export function Modal({
 }: ModalProps) {
   const dialogRef = useRef<HTMLDivElement>(null)
   const previouslyFocused = useRef<HTMLElement | null>(null)
+  const titleId = useId()
 
   useEffect(() => {
     if (!open) return
@@ -84,12 +85,12 @@ export function Modal({
         className="ui-modal"
         role="dialog"
         aria-modal="true"
-        aria-labelledby="ui-modal-title"
+        aria-labelledby={titleId}
         tabIndex={-1}
         ref={dialogRef}
       >
         <div className="ui-modal__header">
-          <h3 className="ui-modal__title" id="ui-modal-title">
+          <h3 className="ui-modal__title" id={titleId}>
             {title}
           </h3>
           <button className="ui-modal__close" type="button" onClick={onClose} aria-label="Close">

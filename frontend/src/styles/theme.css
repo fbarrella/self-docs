@@ -15,16 +15,18 @@
   --color-accent: #c4e349;
   --color-accent-hover: #b5d63a;
   --color-accent-text: #212529;
+  /* Darker accent for text/links on light surfaces (WCAG AA on #fff/#f8f9fa). */
+  --color-accent-strong: #3f6212;
   --color-tag-bg: #e9ecef;
   --color-border: #dee2e6;
   --color-icon-muted: #d9b64a;
 
   /* Feedback colors (used by forms/toasts, not in the base reference) */
-  --color-danger: #dc3545;
+  --color-danger: #b02a37;
   --color-danger-soft: #f8d7da;
-  --color-success: #198754;
+  --color-success: #0f5132;
   --color-success-soft: #d1e7dd;
-  --color-warning: #b8860b;
+  --color-warning: #664d03;
   --color-warning-soft: #fff3cd;
   --color-focus-ring: #8fb43f;
 

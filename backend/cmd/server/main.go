@@ -61,11 +61,12 @@ func run() error {
 	}
 
 	engine := router.New(router.Deps{
-		Pool:         pool.Pool,
-		RedisEnabled: cfg.RedisEnabled(),
-		Version:      version,
-		CORSOrigins:  cfg.CORSOrigins,
-		Cache:        c,
+		Pool:           pool.Pool,
+		RedisEnabled:   cfg.RedisEnabled(),
+		Version:        version,
+		CORSOrigins:    cfg.CORSOrigins,
+		Cache:          c,
+		TrustedProxies: cfg.TrustedProxies,
 	})
 
 	server := &http.Server{

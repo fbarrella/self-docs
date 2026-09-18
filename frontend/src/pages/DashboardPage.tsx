@@ -3,6 +3,7 @@ import { api } from '../api/client'
 import type { Activity, Dashboard, Section } from '../api/types'
 import {
   Button,
+  ButtonLink,
   Card,
   EmptyState,
   IconBadge,
@@ -86,9 +87,9 @@ export function DashboardPage() {
                 <p className="dashboard-card__meta">
                   {card?.locked ? 'Password required' : `${card?.count ?? 0} documents`}
                 </p>
-                <Link to={meta.route}>
-                  <Button block>{meta.buttonLabel}</Button>
-                </Link>
+                <ButtonLink to={meta.route} block>
+                  {meta.buttonLabel}
+                </ButtonLink>
               </Card>
             )
           })}

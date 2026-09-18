@@ -123,9 +123,20 @@ func TestTagsPrivateIsolation(t *testing.T) {
 	engine.GET("/api/tags", tags.List)
 	engine.GET("/api/tags/popular", tags.Popular)
 	engine.GET("/api/tags/:name/documents", tags.Documents)
+	engine.DELETE("/api/tags/:name", tags.Delete)
+
+	// Deleting a private-only tag must look like an unknown tag (404) and must
+	// not actually remove it.
+	rec := doJSON(t, engine, http.MethodDelete, "/api/tags/private-only", nil)
+	if rec.Code != http.StatusNotFound {
+		t.Errorf("delete private-only tag status = %d, want 404", rec.Code)
+	}
+	if _, err := repository.NewTagRepository(pool).GetByNormalized(t.Context(), "private-only"); err != nil {
+		t.Errorf("private-only tag was removed: %v", err)
+	}
 
 	// Tag list must not include the private-only tag.
-	rec := doJSON(t, engine, http.MethodGet, "/api/tags", nil)
+	rec = doJSON(t, engine, http.MethodGet, "/api/tags", nil)
 	resp := decodeBody[tagsResponse](t, rec)
 	for _, tag := range resp.Data {
 		if tag.Name == "private-only" {

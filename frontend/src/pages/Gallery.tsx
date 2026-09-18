@@ -2,6 +2,7 @@ import { useState } from 'react'
 import {
   Avatar,
   Button,
+  ButtonLink,
   Card,
   Dropdown,
   EmptyState,
@@ -39,6 +40,7 @@ export function Gallery() {
         <Button disabled>Disabled</Button>
         <Button size="sm">Small</Button>
         <Button size="lg">Large</Button>
+        <ButtonLink to="/">Link button</ButtonLink>
       </div>
 
       <SectionHeader title="Cards & tags" />

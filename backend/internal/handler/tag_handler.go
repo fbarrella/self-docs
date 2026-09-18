@@ -97,11 +97,20 @@ func (h *TagHandler) Popular(c *gin.Context) {
 
 // Delete handles DELETE /api/tags/:name. Removing a tag detaches it from all
 // documents (document_tags cascades).
+//
+// A tag attached only to private documents is treated as not found so a public
+// caller cannot detect or remove it (private isolation invariant).
 func (h *TagHandler) Delete(c *gin.Context) {
+	if _, err := h.tags.GetVisibleByNormalized(c.Request.Context(), c.Param("name")); err != nil {
+		handleRepoError(c, err)
+		return
+	}
 	if err := h.tags.Delete(c.Request.Context(), c.Param("name")); err != nil {
 		handleRepoError(c, err)
 		return
 	}
+	// Removing a tag changes popular-tag counts.
+	h.cache.InvalidateDocuments(c.Request.Context())
 	c.Status(http.StatusNoContent)
 }
 
